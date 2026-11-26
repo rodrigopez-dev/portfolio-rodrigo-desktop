@@ -181,3 +181,30 @@ document.querySelector('#reset-layout').addEventListener('click', () => {
 });
 window.addEventListener('resize', applyPositions);
 applyPositions();
+
+const dock = document.querySelector('.dock');
+const dockApps = [...dock.querySelectorAll('button, a')];
+const canMagnifyDock = window.matchMedia('(hover: hover) and (pointer: fine)');
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+function resetDockWave() {
+  dockApps.forEach(app => {
+    app.style.removeProperty('--dock-lift');
+    app.style.removeProperty('--dock-scale');
+  });
+}
+
+dock.addEventListener('pointermove', event => {
+  if (!canMagnifyDock.matches || reduceMotion.matches || event.pointerType === 'touch') return;
+  dockApps.forEach(app => {
+    const rect = app.getBoundingClientRect();
+    const distance = Math.abs(event.clientX - (rect.left + rect.width / 2));
+    const wave = Math.exp(-0.5 * (distance / 70) ** 2);
+    app.style.setProperty('--dock-lift', `${(-17 * wave).toFixed(2)}px`);
+    app.style.setProperty('--dock-scale', (1 + 0.19 * wave).toFixed(3));
+  });
+});
+
+dock.addEventListener('pointerleave', resetDockWave);
+canMagnifyDock.addEventListener('change', resetDockWave);
+reduceMotion.addEventListener('change', resetDockWave);
