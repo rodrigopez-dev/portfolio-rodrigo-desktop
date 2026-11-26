@@ -68,7 +68,7 @@ setInterval(tick, 30000);
 const workspace = document.querySelector('.workspace');
 const movableItems = [...workspace.querySelectorAll('.desktop-item, .desktop-widget')];
 const desktopLayout = window.matchMedia('(min-width: 701px)');
-const layoutStorageKey = 'portfolio.desktop.positions.v1';
+const layoutStorageKey = 'portfolio.desktop.positions.v2';
 
 function itemId(item) {
   return item.classList.contains('desktop-widget') ? `widget:${item.dataset.dragId}` : `project:${item.dataset.open}`;
