@@ -244,6 +244,43 @@ movableItems.forEach(item => {
   }, true);
 });
 
+// Keyboard alternative to dragging: arrow keys move the focused widget by one grid cell
+// or the focused file by 16 px. This covers keyboard users; a single-pointer alternative
+// (WCAG 2.5.7) is still to be designed.
+const arrowDirections = {ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1]};
+movableItems.forEach(item => {
+  item.addEventListener('keydown', event => {
+    const direction = arrowDirections[event.key];
+    if (!direction || event.target !== item || !desktopLayout.matches) return;
+    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+    event.preventDefault();
+    if (item.classList.contains('desktop-widget')) {
+      const grid = widgetGrid();
+      const col = Number(item.dataset.gridCol) + direction[0];
+      const row = Number(item.dataset.gridRow) + direction[1];
+      if (col < 0 || row < 0) return;
+      const previous = {col: item.dataset.gridCol, row: item.dataset.gridRow, left: item.style.left, top: item.style.top};
+      placeWidget(item, grid.left + col * grid.stepX, grid.top + row * grid.stepY, widgets.filter(other => other !== item));
+      if (Number(item.dataset.gridCol) === col && Number(item.dataset.gridRow) === row) {
+        savePosition(item);
+      } else {
+        item.dataset.gridCol = previous.col;
+        item.dataset.gridRow = previous.row;
+        item.style.left = previous.left;
+        item.style.top = previous.top;
+      }
+      return;
+    }
+    const step = 16;
+    const maxX = Math.max(0, workspace.clientWidth - item.offsetWidth);
+    const maxY = Math.max(0, workspace.clientHeight - item.offsetHeight);
+    item.style.left = `${Math.min(maxX, Math.max(0, item.offsetLeft + direction[0] * step))}px`;
+    item.style.top = `${Math.min(maxY, Math.max(0, item.offsetTop + direction[1] * step))}px`;
+    item.style.right = 'auto';
+    savePosition(item);
+  });
+});
+
 document.querySelector('#reset-layout').addEventListener('click', () => {
   try { localStorage.removeItem(layoutStorageKey); } catch { /* Ignore disabled storage. */ }
   applyPositions();

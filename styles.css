@@ -86,7 +86,7 @@
 #widget-month{color:#a5a4aa}
 .widget-calendar .widget-day{font-size:5.4rem;line-height:.8;font-weight:600;letter-spacing:-.095em;font-variant-numeric:tabular-nums;margin-left:-4px}
 .widget-about{left:176px;top:8px;justify-content:space-between;background:linear-gradient(140deg,rgba(87,88,97,.79),rgba(37,38,46,.82))}
-.widget-about-heading{display:flex;align-items:center;gap:7px;font-size:.67rem;letter-spacing:.085em;font-weight:700;color:#e2e2e8}
+.widget-about-heading{display:flex;align-items:center;gap:7px;font-size:.6875rem;letter-spacing:.085em;font-weight:700;color:#e2e2e8}
 .widget-monogram{display:grid;place-items:center;width:20px;height:20px;border:1px solid rgba(255,255,255,.52);border-radius:6px;font-size:.75rem;letter-spacing:0}
 .widget-about>strong{font-size:1.34rem;line-height:1.02;letter-spacing:-.05em;font-weight:680}
 .widget-about-footer{font-size:.77rem;color:#dedee4}
@@ -124,7 +124,7 @@
 
 /* Five useful widgets form a compact grid without covering the portrait. */
 .menubar .apple{display:grid;place-items:center;width:18px;height:18px;padding:0;border:1px solid rgba(255,255,255,.75);border-radius:5px;font-size:.68rem;font-weight:800;line-height:1}
-.menubar>strong{font-size:.82rem;letter-spacing:-.02em}
+.menubar>strong{font-size:.82rem;letter-spacing:-.006em}
 .widget-archive{left:16px;top:168px;justify-content:space-between;background:linear-gradient(145deg,rgba(52,65,77,.9),rgba(25,33,42,.89))}
 .widget-archive-heading,.widget-motion-heading{font-size:.69rem;font-weight:750;letter-spacing:.1em;color:#d7e1e8}
 .widget-archive>strong{font-size:4.5rem;font-weight:600;letter-spacing:-.085em;line-height:.82;font-variant-numeric:tabular-nums}
@@ -189,7 +189,7 @@
 .dock-icon,.dock-icon:has(img){width:50px;height:50px;border:0;border-radius:14px;background:transparent;box-shadow:none;overflow:visible}
 .dock-icon::after{display:none}
 .dock-icon img{width:100%;height:100%;object-fit:contain}
-.dock-icon img[src$=".svg"],.dock-icon img[src="assets/instagram-appstore.png"]{border-radius:13px}
+.dock-icon img[src$=".svg"],.dock-icon img[src="assets/instagram-appstore.jpg"]{border-radius:13px}
 .dock-icon img[src*="macos26"]{transform:scale(1.19)}
 .dock-icon img[src="assets/powerpoint-appstore.png"]{transform:scale(1.17)}
 .dock button:hover .dock-icon,.dock a:hover .dock-icon{transform:translateY(-7px) scale(1.1)}
@@ -214,7 +214,7 @@
 .window-sidebar svg{width:17px;height:17px;flex:0 0 17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .window-content{padding:31px 34px 36px;overflow:auto;background:rgba(255,255,255,.76)}
 .window .eyebrow{margin:0;color:#637586;font-size:.7rem;letter-spacing:.1em}
-.window h1{max-width:none;margin:9px 0 16px;color:#182631;font-size:clamp(2.15rem,4vw,3.2rem);line-height:1.02;letter-spacing:-.055em}
+.window h1{max-width:none;margin:9px 0 16px;color:#182631;font-size:clamp(2.15rem,4vw,3.2rem);line-height:1.02;letter-spacing:-.022em}
 .window p:not(.eyebrow){margin:0;color:#4e5a65;font-size:.94rem;line-height:1.55}
 .project-meta{flex-wrap:wrap;margin:20px 0}
 .project-meta span{padding:7px 10px;border:1px solid #e0e5ea;background:#f1f4f7;color:#52616f;border-radius:9px;font-size:.72rem;font-weight:650}
@@ -250,7 +250,7 @@
 .dock{height:76px;gap:7px;padding:9px 11px;bottom:13px;border-radius:25px;background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.035) 46%,rgba(255,255,255,.075));border:1px solid rgba(255,255,255,.27);box-shadow:0 7px 20px rgba(0,0,0,.16),inset 0 1px rgba(255,255,255,.36),inset 0 -1px rgba(255,255,255,.1);backdrop-filter:blur(13px) saturate(120%);-webkit-backdrop-filter:blur(13px) saturate(120%)}
 .dock::before{inset:1px;border-radius:23px;border-color:rgba(255,255,255,.11)}
 .dock-icon,.dock-icon:has(img){width:56px;height:56px}
-.dock-icon img[src$=".svg"],.dock-icon img[src="assets/instagram-appstore.png"]{border-radius:15px}
+.dock-icon img[src$=".svg"],.dock-icon img[src="assets/instagram-appstore.jpg"]{border-radius:15px}
 .dock-separator{height:41px;background:rgba(255,255,255,.31);margin:0 3px}
 .dock small{bottom:72px}
 .trash{background:linear-gradient(145deg,rgba(252,253,255,.83),rgba(182,193,203,.72));box-shadow:inset 0 1px rgba(255,255,255,.75)}
@@ -273,18 +273,18 @@
 :root{font-family:-apple-system,BlinkMacSystemFont,Inter,system-ui,sans-serif;font-optical-sizing:auto}
 .desktop-widget{transition:box-shadow .18s,border-color .18s,filter .18s,left .2s cubic-bezier(.2,.75,.2,1),top .2s cubic-bezier(.2,.75,.2,1)}
 .desktop-widget.dragging{transition:none}
-.widget-date-heading{font-weight:600;letter-spacing:-.025em}
-.widget-calendar .widget-day{font-weight:500;letter-spacing:-.065em}
+.widget-date-heading{font-weight:600;letter-spacing:-.02em}
+.widget-calendar .widget-day{font-weight:500;letter-spacing:-.022em}
 .widget-about-heading,.widget-archive-heading,.widget-motion-heading,.widget-feature-heading{font-weight:600;letter-spacing:.045em}
-.widget-about>strong,.widget-motion>strong,.widget-feature-copy strong{font-weight:620;letter-spacing:-.035em}
-.widget-archive>strong{font-weight:500;letter-spacing:-.065em}
+.widget-about>strong,.widget-motion>strong,.widget-feature-copy strong{font-weight:620;letter-spacing:-.02em}
+.widget-archive>strong{font-weight:500;letter-spacing:-.022em}
 .widget-about-footer,.widget-archive-footer,.widget-feature-copy>span{font-weight:400}
 
 /* The desktop Dock is about 30% smaller; touch sizes stay comfortable on phones. */
 .dock{height:56px;gap:5px;padding:6px 8px;bottom:10px;border-radius:19px}
 .dock::before{border-radius:17px}
 .dock-icon,.dock-icon:has(img){width:40px;height:40px}
-.dock-icon img[src$=".svg"],.dock-icon img[src="assets/instagram-appstore.png"]{border-radius:11px}
+.dock-icon img[src$=".svg"],.dock-icon img[src="assets/instagram-appstore.jpg"]{border-radius:11px}
 .dock-separator{height:29px;margin:0 2px}
 .dock small{bottom:63px}
 @media(max-width:700px){.dock{height:51px;gap:3px;padding:5px 6px;bottom:calc(9px + env(safe-area-inset-bottom));border-radius:18px}.dock::before{border-radius:16px}.dock-icon,.dock-icon:has(img){width:clamp(30px,8vw,34px);height:clamp(30px,8vw,34px)}.dock-separator{height:25px;margin:0 1px}}
@@ -293,3 +293,11 @@
 /* Desktop files: click selects, double click opens. Hover only lifts the icon. */
 .desktop-item:hover:not(.is-selected):not(.is-open){background:transparent;border-color:transparent;outline:none}
 .desktop-item.is-selected{background:rgba(72,137,239,.28);border-color:rgba(194,220,255,.65);outline:none}
+
+/* Refinements from the 26/11/2026 design research: hit area, focus label, glyph, tracking, phone wallpaper. */
+.traffic .close{position:relative}
+.traffic .close::after{content:"";position:absolute;inset:-7px}
+.traffic .close:focus-visible{outline:2px solid #0a84ff;outline-offset:3px}
+.dock button:focus-visible small,.dock a:focus-visible small{opacity:1;transform:translateX(-50%)}
+.widget-motion-symbol svg{display:block;width:11px;height:11px;fill:currentColor}
+@media(max-width:700px){.wallpaper{background-image:url("assets/wallpaper-v4-mobile.jpg")}}
