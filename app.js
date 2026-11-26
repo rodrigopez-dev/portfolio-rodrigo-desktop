@@ -34,6 +34,7 @@ function openProject(key, trigger) {
   const project = projects[key];
   if (!project) return;
   const wasHidden = win.hidden;
+  const source = wasHidden ? sourceFor(trigger || document.activeElement) : null;
   if (minimizedThumb) clearMinimized();
   if (win.hidden || !win.contains(trigger)) lastTrigger = trigger || document.activeElement;
   win.dataset.view = key;
@@ -53,7 +54,7 @@ function openProject(key, trigger) {
   win.hidden = false;
   win.classList.remove('is-inactive');
   desktopEl.classList.add('window-open');
-  if (wasHidden && !reduceMotion.matches) playOpenAnimation();
+  if (wasHidden && !reduceMotion.matches) playOpenAnimation(source);
   document.querySelector('.close').focus();
 }
 
@@ -71,9 +72,20 @@ function closeWindow() {
   closing = true;
   // The timer guarantees the window closes even if the browser skips the animation frames.
   let finished = false;
-  const finishOnce = () => { if (!finished) { finished = true; finish(); } };
-  win.animate([{opacity: 1, scale: 1}, {opacity: 0, scale: 0.94}], {duration: 140, easing: 'ease-out'}).onfinish = finishOnce;
-  setTimeout(finishOnce, 220);
+  const finishOnce = () => {
+    if (finished) return;
+    finished = true;
+    win.getAnimations({subtree: true}).forEach(animation => animation.cancel());
+    finish();
+  };
+  // Back into the icon or widget it opened from, when that is still on screen.
+  const source = windowMode === 'normal' ? sourceFor(lastTrigger) : null;
+  const duration = source ? 380 : 140;
+  const animation = source
+    ? zoomWindow(source, 'close', duration)
+    : win.animate([{opacity: 1, scale: 1}, {opacity: 0, scale: 0.94}], {duration, easing: 'ease-out', fill: 'forwards'});
+  animation.onfinish = finishOnce;
+  setTimeout(finishOnce, duration + 100);
 }
 
 document.querySelectorAll('[data-open]:not(.desktop-item)').forEach(button => button.addEventListener('click', () => openProject(button.dataset.open, button)));
@@ -540,10 +552,45 @@ function transitionWindow(target, properties, done) {
   setTimeout(end, WINDOW_MS + 80);
 }
 
-function playOpenAnimation() {
+// Rectangle (and corner radius) of the icon, file or widget the window opens from.
+function sourceFor(trigger) {
+  if (!trigger || typeof trigger.getBoundingClientRect !== 'function' || !trigger.isConnected || win.contains(trigger)) return null;
+  const target = trigger.querySelector('.dock-icon, .project-file') || trigger;
+  const rect = target.getBoundingClientRect();
+  if (!rect.width || !rect.height || rect.bottom < 0 || rect.top > window.innerHeight) return null;
+  return {rect, radius: parseFloat(getComputedStyle(target).borderTopLeftRadius) || 14};
+}
+
+// The window grows out of its source (or shrinks back into it) as one piece, like an app opening on iOS.
+function zoomWindow(source, direction, duration) {
+  win.getAnimations({subtree: true}).forEach(animation => animation.cancel());
+  const to = win.getBoundingClientRect();
+  const scale = Math.min(0.3, Math.max(0.06, source.rect.width / to.width));
+  const dx = source.rect.left + source.rect.width / 2 - (to.left + to.width / 2);
+  const dy = source.rect.top + source.rect.height / 2 - (to.top + to.height / 2);
+  const radius = parseFloat(getComputedStyle(win).borderTopLeftRadius) || 28;
+  const small = {
+    transform: `translate(-50%, -50%) translate(${dx}px, ${dy}px) scale(${scale})`,
+    opacity: 0.2,
+    borderRadius: `${source.radius / scale}px`
+  };
+  const full = {transform: 'translate(-50%, -50%)', opacity: 1, borderRadius: `${radius}px`};
+  const opening = direction === 'open';
+  win.querySelector('.window-shell').animate(
+    opening ? [{opacity: 0}, {opacity: 0, offset: 0.25}, {opacity: 1}] : [{opacity: 1}, {opacity: 0}],
+    {duration, easing: 'ease-out', fill: 'both'}
+  );
+  return win.animate(opening ? [small, full] : [full, small], {duration, easing: WINDOW_EASE, fill: 'both'});
+}
+
+function playOpenAnimation(source) {
+  if (source && windowMode === 'normal') {
+    zoomWindow(source, 'open', 520).onfinish = () => win.getAnimations({subtree: true}).forEach(animation => animation.cancel());
+    return;
+  }
   win.animate(
     [{opacity: 0, scale: 0.94, translate: '0 4%'}, {opacity: 1, scale: 1, translate: '0 0'}],
-    {duration: 250, easing: WINDOW_EASE}
+    {duration: 260, easing: WINDOW_EASE}
   );
 }
 

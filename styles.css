@@ -359,3 +359,62 @@
 .context-menu button{display:block;width:100%;padding:7px 12px;border:0;border-radius:7px;background:transparent;color:#18212b;font-family:inherit;font-size:.83rem;font-weight:500;line-height:1.2;text-align:left;cursor:default}
 .context-menu button:hover,.context-menu button:focus-visible{background:#0a84ff;color:#fff;outline:none}
 @media(prefers-reduced-transparency:reduce){.context-menu{background:#f6f7fa;backdrop-filter:none;-webkit-backdrop-filter:none}}
+
+/* ===== Liquid Glass pass (26/11/2026) =====
+   Based on the macOS 26 Finder window in Apple's Mac Employee Starter Guide (p. 4), the HIG widget images
+   and the WidgetKit appearances page: floating glass controls, an inset glass sidebar, a thin rim light,
+   layered soft shadows and large continuous corners. Values are tuned by eye, not published by Apple. */
+:root{--spring:cubic-bezier(.22,1,.36,1)}
+
+/* Widgets: clear glass with a faint tint, as in the HIG "clear" appearance. */
+.desktop-widget{--tint:20,22,28;--tint-a:.34;--widget-bg:linear-gradient(165deg,rgba(255,255,255,.16),rgba(255,255,255,.03) 52%,rgba(255,255,255,.08)),rgba(var(--tint),var(--tint-a));border:0;border-radius:29px;background:var(--widget-bg);backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);box-shadow:0 1px 2px rgba(0,0,0,.3),0 16px 36px -8px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.38),inset 0 -1px 0 rgba(255,255,255,.1);transition:box-shadow .25s,filter .4s,transform .4s var(--spring),left .2s cubic-bezier(.2,.75,.2,1),top .2s cubic-bezier(.2,.75,.2,1)}
+.desktop-widget::before{content:"";position:absolute;inset:0;padding:1px;border-radius:inherit;pointer-events:none;background:linear-gradient(145deg,rgba(255,255,255,.75),rgba(255,255,255,.08) 38%,rgba(255,255,255,.04) 62%,rgba(255,255,255,.4));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.desktop-widget::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(120% 80% at 12% 0%,rgba(255,255,255,.14),transparent 55%)}
+.widget-calendar{--tint:12,12,16;--tint-a:.6}
+.widget-about{--tint:70,74,86;--tint-a:.4}
+.widget-archive{--tint:40,60,78;--tint-a:.42}
+.widget-motion{--tint:88,66,140;--tint-a:.46}
+.widget-feature{--tint:60,66,78;--tint-a:.42}
+.desktop-widget:hover{filter:brightness(1.07)}
+.desktop-widget:active:not(.dragging){transform:scale(.97)}
+.desktop-widget.dragging{transform:scale(1.04);background:var(--widget-bg);box-shadow:0 2px 4px rgba(0,0,0,.3),0 28px 52px -8px rgba(0,0,0,.62),inset 0 1px 0 rgba(255,255,255,.4)}
+@media(min-width:701px) and (max-width:1100px){.desktop-widget{border-radius:25px}}
+
+/* Dock: same rim light and shadow language. */
+.dock{box-shadow:0 12px 34px -4px rgba(0,0,0,.45),0 1px 2px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.4),inset 0 -1px 0 rgba(255,255,255,.12)}
+
+/* Window: no title band. Controls float over the content, the sidebar is an inset glass panel. */
+.window{border:0;border-radius:28px;background:linear-gradient(160deg,rgba(244,248,253,.9),rgba(228,236,246,.86));backdrop-filter:blur(40px) saturate(170%);-webkit-backdrop-filter:blur(40px) saturate(170%);box-shadow:0 0 0 .5px rgba(0,0,0,.22),0 3px 8px rgba(0,0,0,.14),0 32px 80px -10px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.95),inset 0 0 0 1px rgba(255,255,255,.4);transition:box-shadow .3s}
+.window.is-inactive{box-shadow:0 0 0 .5px rgba(0,0,0,.2),0 2px 6px rgba(0,0,0,.1),0 16px 40px -8px rgba(0,0,0,.4),inset 0 0 0 1px rgba(255,255,255,.3)}
+.window.is-fullscreen{box-shadow:none}
+.window-bar{position:absolute;inset:0 0 auto;z-index:2;height:56px;display:grid;grid-template-columns:176px minmax(0,1fr) auto;align-items:center;padding:0 16px 0 26px;border:0;background:none;backdrop-filter:none;-webkit-backdrop-filter:none;pointer-events:none}
+.window-bar>*{pointer-events:auto}
+.window-bar::before{content:"";position:absolute;inset:0 0 -18px 176px;z-index:-1;pointer-events:none;background:linear-gradient(#fff 0,rgba(255,255,255,.94) 52%,rgba(255,255,255,0))}
+.window-bar #window-label{grid-column:2;justify-self:center;color:#26323f;font-size:.82rem;font-weight:650;letter-spacing:-.006em;pointer-events:none}
+.traffic{grid-column:1}
+.window-home{grid-column:3;width:36px;height:36px;border:1px solid rgba(255,255,255,.9);border-radius:50%;background:linear-gradient(160deg,rgba(255,255,255,.95),rgba(236,242,249,.75));box-shadow:0 1px 2px rgba(30,50,80,.12),0 6px 16px -4px rgba(30,50,80,.22),inset 0 1px 0 #fff}
+.window-shell{grid-template-columns:176px minmax(0,1fr);min-height:460px;max-height:calc(100svh - 110px);background:none}
+.window-sidebar{margin:10px 0 10px 10px;padding:58px 10px 14px;border:1px solid rgba(255,255,255,.8);border-radius:20px;background:linear-gradient(160deg,rgba(255,255,255,.72),rgba(222,234,248,.55));box-shadow:inset 0 1px 0 #fff,0 1px 2px rgba(30,50,80,.06),0 10px 26px -6px rgba(30,50,80,.16)}
+.window-sidebar button.is-current{background:rgba(110,125,150,.16);color:#1d2a38;font-weight:650}
+.window-content{padding:64px 34px 36px;background:#fff}
+.window.is-fullscreen .window-shell,.window.is-zoomed .window-shell{height:100%}
+@media(max-width:700px){
+  .window{border-radius:22px}
+  .window-bar{position:relative;inset:auto;height:48px;grid-template-columns:auto minmax(0,1fr) auto;padding:0 14px;border-bottom:1px solid rgba(0,0,0,.07);background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(238,242,247,.88));pointer-events:auto}
+  .window-bar::before{display:none}
+  .window-shell{min-height:0;max-height:calc(100svh - 160px)}
+  .window-content{padding:24px 22px 28px}
+}
+
+/* Context menu in the same glass. */
+.context-menu{border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.2),0 16px 38px -6px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.85)}
+
+/* Opening a window dims and softens the desktop behind it, like an app opening on iOS. */
+.workspace{transition:filter .5s var(--spring),transform .5s var(--spring)}
+.wallpaper{transition:filter .5s}
+.desktop.window-open .workspace{filter:blur(1.5px) brightness(.84);transform:scale(.992)}
+.desktop.window-open .wallpaper{filter:brightness(.82)}
+
+@supports (corner-shape: squircle){.desktop-widget,.window,.window-sidebar,.context-menu,.dock{corner-shape:squircle}}
+@media(prefers-reduced-motion:reduce){.workspace,.wallpaper,.desktop-widget,.window{transition:none}.desktop.window-open .workspace{filter:brightness(.84);transform:none}}
+@media(prefers-reduced-transparency:reduce){.desktop-widget{--widget-bg:rgb(var(--tint));backdrop-filter:none;-webkit-backdrop-filter:none}.window{background:#eef2f7;backdrop-filter:none;-webkit-backdrop-filter:none}.window-sidebar{background:#e6ecf4}}
