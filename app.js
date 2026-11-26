@@ -33,6 +33,8 @@ let lastTrigger = null;
 function openProject(key, trigger) {
   const project = projects[key];
   if (!project) return;
+  const wasHidden = win.hidden;
+  if (minimizedThumb) clearMinimized();
   if (win.hidden || !win.contains(trigger)) lastTrigger = trigger || document.activeElement;
   win.dataset.view = key;
   Object.entries(fields).forEach(([field, selector]) => { document.querySelector(selector).textContent = project[field]; });
@@ -49,24 +51,41 @@ function openProject(key, trigger) {
   });
   document.querySelectorAll('.desktop-item').forEach(item => item.classList.toggle('is-open', item.dataset.open === key));
   win.hidden = false;
+  win.classList.remove('is-inactive');
+  desktopEl.classList.add('window-open');
+  if (wasHidden && !reduceMotion.matches) playOpenAnimation();
   document.querySelector('.close').focus();
 }
 
 function closeWindow() {
-  win.hidden = true;
-  document.querySelectorAll('.desktop-item.is-open').forEach(item => item.classList.remove('is-open'));
-  if (lastTrigger && typeof lastTrigger.focus === 'function') lastTrigger.focus();
+  if (closing) return;
+  const finish = () => {
+    closing = false;
+    win.hidden = true;
+    resetWindowState();
+    document.querySelectorAll('.desktop-item.is-open').forEach(item => item.classList.remove('is-open'));
+    if (lastTrigger && typeof lastTrigger.focus === 'function') lastTrigger.focus();
+  };
+  if (minimizedThumb) clearMinimized();
+  if (win.hidden || reduceMotion.matches) { finish(); return; }
+  closing = true;
+  // The timer guarantees the window closes even if the browser skips the animation frames.
+  let finished = false;
+  const finishOnce = () => { if (!finished) { finished = true; finish(); } };
+  win.animate([{opacity: 1, scale: 1}, {opacity: 0, scale: 0.94}], {duration: 140, easing: 'ease-out'}).onfinish = finishOnce;
+  setTimeout(finishOnce, 220);
 }
 
 document.querySelectorAll('[data-open]:not(.desktop-item)').forEach(button => button.addEventListener('click', () => openProject(button.dataset.open, button)));
 document.querySelector('.close').addEventListener('click', closeWindow);
-document.addEventListener('keydown', event => { if (event.key === 'Escape' && !win.hidden) closeWindow(); });
+document.addEventListener('keydown', event => {
+  if (event.key !== 'Escape' || win.hidden) return;
+  if (windowMode === 'fullscreen') collapseWindow(); else closeWindow();
+});
 document.querySelector('#instagram').addEventListener('click', event => { event.preventDefault(); openProject('contato', event.currentTarget); });
 
 function tick() {
   const now = new Date();
-  document.querySelector('#clock').textContent = now.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
-  document.querySelector('#date').textContent = now.toLocaleDateString('pt-BR', {weekday:'short',day:'2-digit',month:'short'});
   const weekday = now.toLocaleDateString('pt-BR', {weekday:'short'});
   document.querySelector('#widget-weekday').textContent = weekday.charAt(0).toUpperCase() + weekday.slice(1);
   document.querySelector('#widget-day').textContent = now.getDate();
@@ -81,88 +100,172 @@ setInterval(tick, 30000);
 const workspace = document.querySelector('.workspace');
 const movableItems = [...workspace.querySelectorAll('.desktop-item, .desktop-widget')];
 const widgets = movableItems.filter(item => item.classList.contains('desktop-widget'));
+const projectFileItems = movableItems.filter(item => !item.classList.contains('desktop-widget'));
 const desktopLayout = window.matchMedia('(min-width: 701px)');
-const layoutStorageKey = 'portfolio.desktop.positions.v3';
+const layoutStorageKey = 'portfolio.desktop.positions.v4';
+const legacyLayoutStorageKey = 'portfolio.desktop.positions.v3';
 const defaultWidgetCells = {
   calendar: [0, 0], about: [1, 0], archive: [0, 1], motion: [1, 1], feature: [0, 2]
 };
+// Desktop behavior modeled on the Mac: widgets can sit anywhere, line up with the edges and with each
+// other when dropped close to them, never overlap each other, and files move out of a widget's way.
+// Apple publishes no snapping distance; SNAP_DISTANCE is a design choice.
+const EDGE_MARGIN = 16;
+const SNAP_DISTANCE = 18;
+const MIN_GAP = 8;
+const FILE_GAP = 4;
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
 function itemId(item) {
   return item.classList.contains('desktop-widget') ? `widget:${item.dataset.dragId}` : `project:${item.dataset.open}`;
 }
 
 function readPositions() {
-  try { return JSON.parse(localStorage.getItem(layoutStorageKey)) || {}; }
-  catch { return {}; }
+  for (const key of [layoutStorageKey, legacyLayoutStorageKey]) {
+    try {
+      const stored = JSON.parse(localStorage.getItem(key));
+      if (stored) return stored;
+    } catch { /* Fall through to the next key. */ }
+  }
+  return {};
+}
+
+function writePositions(positions) {
+  try { localStorage.setItem(layoutStorageKey, JSON.stringify(positions)); }
+  catch { /* The desktop still works when browser storage is unavailable. */ }
+}
+
+function boxOf(item) {
+  const left = parseFloat(item.style.left);
+  const top = parseFloat(item.style.top);
+  return {
+    x: Number.isFinite(left) ? left : item.offsetLeft,
+    y: Number.isFinite(top) ? top : item.offsetTop,
+    w: item.offsetWidth,
+    h: item.offsetHeight
+  };
+}
+
+function limitsOf(item) {
+  return {
+    maxX: Math.max(0, workspace.clientWidth - item.offsetWidth),
+    maxY: Math.max(0, workspace.clientHeight - item.offsetHeight)
+  };
+}
+
+function overlaps(a, b, gap) {
+  return a.x < b.x + b.w + gap && a.x + a.w + gap > b.x && a.y < b.y + b.h + gap && a.y + a.h + gap > b.y;
+}
+
+function setPosition(item, x, y) {
+  item.style.left = `${Math.round(x)}px`;
+  item.style.top = `${Math.round(y)}px`;
+  item.style.right = 'auto';
 }
 
 function savePosition(item) {
   const positions = readPositions();
   if (item.classList.contains('desktop-widget')) {
-    positions[itemId(item)] = {col: Number(item.dataset.gridCol), row: Number(item.dataset.gridRow)};
-    try { localStorage.setItem(layoutStorageKey, JSON.stringify(positions)); }
-    catch { /* The desktop still works when browser storage is unavailable. */ }
-    return;
+    positions[itemId(item)] = {left: Math.round(parseFloat(item.style.left)), top: Math.round(parseFloat(item.style.top))};
+  } else {
+    const {maxX, maxY} = limitsOf(item);
+    positions[itemId(item)] = {
+      x: maxX ? clamp(parseFloat(item.style.left) / maxX, 0, 1) : 0,
+      y: maxY ? clamp(parseFloat(item.style.top) / maxY, 0, 1) : 0
+    };
   }
-  const maxX = Math.max(0, workspace.clientWidth - item.offsetWidth);
-  const maxY = Math.max(0, workspace.clientHeight - item.offsetHeight);
-  positions[itemId(item)] = {
-    x: maxX ? Math.min(1, Math.max(0, parseFloat(item.style.left) / maxX)) : 0,
-    y: maxY ? Math.min(1, Math.max(0, parseFloat(item.style.top) / maxY)) : 0
+  writePositions(positions);
+}
+
+function widgetGap() {
+  return widgets[0].offsetWidth < 140 ? 11 : 15;
+}
+
+// Aligns a dropped widget with the desktop edges and with other widgets, but only when it lands close to them.
+function snappedPosition(item, x, y, others) {
+  const {maxX, maxY} = limitsOf(item);
+  const w = item.offsetWidth;
+  const h = item.offsetHeight;
+  const gap = widgetGap();
+  const xTargets = [EDGE_MARGIN, workspace.clientWidth - EDGE_MARGIN - w];
+  const yTargets = [EDGE_MARGIN, workspace.clientHeight - EDGE_MARGIN - h];
+  others.forEach(o => {
+    xTargets.push(o.x, o.x + o.w - w, o.x + o.w + gap, o.x - gap - w);
+    yTargets.push(o.y, o.y + o.h - h, o.y + o.h + gap, o.y - gap - h);
+  });
+  const near = (value, targets) => {
+    const best = targets.reduce((a, t) => Math.abs(t - value) < Math.abs(a - value) ? t : a, targets[0]);
+    return Math.abs(best - value) <= SNAP_DISTANCE ? best : value;
   };
-  try { localStorage.setItem(layoutStorageKey, JSON.stringify(positions)); }
-  catch { /* The desktop still works when browser storage is unavailable. */ }
+  return {x: clamp(near(x, xTargets), 0, maxX), y: clamp(near(y, yTargets), 0, maxY)};
 }
 
-function widgetGrid() {
-  const cell = widgets[0].offsetWidth;
-  return {left: 16, top: 8, stepX: cell + (cell < 140 ? 11 : 15), stepY: widgets[0].offsetHeight + 15};
+// Nearest position that does not overlap any other widget; null when there is none.
+function freeWidgetSpot(item, x, y, others) {
+  const {maxX, maxY} = limitsOf(item);
+  const w = item.offsetWidth;
+  const h = item.offsetHeight;
+  const gap = widgetGap();
+  const candidates = [{x, y}];
+  others.forEach(o => candidates.push(
+    {x: o.x + o.w + gap, y}, {x: o.x - gap - w, y}, {x, y: o.y + o.h + gap}, {x, y: o.y - gap - h},
+    {x: o.x + o.w + gap, y: o.y}, {x: o.x - gap - w, y: o.y}, {x: o.x, y: o.y + o.h + gap}, {x: o.x, y: o.y - gap - h}
+  ));
+  return candidates
+    .map(c => ({x: clamp(c.x, 0, maxX), y: clamp(c.y, 0, maxY)}))
+    .filter(c => others.every(o => !overlaps({x: c.x, y: c.y, w, h}, o, MIN_GAP)))
+    .sort((a, b) => Math.hypot(a.x - x, a.y - y) - Math.hypot(b.x - x, b.y - y))[0] || null;
 }
 
-function placeWidget(item, wantedX, wantedY, occupied) {
-  const grid = widgetGrid();
-  const maxCol = Math.max(0, Math.floor((workspace.clientWidth - grid.left - item.offsetWidth) / grid.stepX));
-  const maxRow = Math.max(0, Math.floor((workspace.clientHeight - grid.top - item.offsetHeight) / grid.stepY));
-  const slots = [];
-  for (let row = 0; row <= maxRow; row++) {
-    for (let col = 0; col <= maxCol; col++) {
-      const x = grid.left + col * grid.stepX;
-      const y = grid.top + row * grid.stepY;
-      const overlaps = occupied.some(other => {
-        const ox = parseFloat(other.style.left);
-        const oy = parseFloat(other.style.top);
-        return x < ox + other.offsetWidth + 7 && x + item.offsetWidth + 7 > ox &&
-          y < oy + other.offsetHeight + 7 && y + item.offsetHeight + 7 > oy;
-      });
-      if (!overlaps) slots.push({col, row, x, y});
+function placeWidget(item, x, y, {snap = false, exact = false} = {}) {
+  const others = widgets.filter(other => other !== item).map(boxOf);
+  const {maxX, maxY} = limitsOf(item);
+  const target = snap ? snappedPosition(item, x, y, others) : {x: clamp(x, 0, maxX), y: clamp(y, 0, maxY)};
+  const spot = freeWidgetSpot(item, target.x, target.y, others);
+  if (!spot || (exact && (spot.x !== target.x || spot.y !== target.y))) return false;
+  setPosition(item, spot.x, spot.y);
+  return true;
+}
+
+// Nearest position for a file that overlaps no widget and no other file.
+function freeFileSpot(file) {
+  const {maxX, maxY} = limitsOf(file);
+  const size = boxOf(file);
+  const obstacles = [...widgets, ...projectFileItems.filter(other => other !== file)].map(boxOf);
+  let best = null;
+  let bestDistance = Infinity;
+  for (let y = 0; y <= maxY; y += 8) {
+    for (let x = 0; x <= maxX; x += 8) {
+      const distance = Math.hypot(x - size.x, y - size.y);
+      if (distance >= bestDistance) continue;
+      const box = {x, y, w: size.w, h: size.h};
+      if (obstacles.every(o => !overlaps(box, o, FILE_GAP))) { best = {x, y}; bestDistance = distance; }
     }
   }
-  slots.sort((a, b) => (a.x - wantedX) ** 2 + (a.y - wantedY) ** 2 -
-    ((b.x - wantedX) ** 2 + (b.y - wantedY) ** 2));
-  const slot = slots[0];
-  if (!slot) return;
-  item.style.left = `${slot.x}px`;
-  item.style.top = `${slot.y}px`;
-  item.style.right = 'auto';
-  item.dataset.gridCol = slot.col;
-  item.dataset.gridRow = slot.row;
+  return best;
+}
+
+function clearFilesFromWidgets(files = projectFileItems) {
+  files.forEach(file => {
+    const box = boxOf(file);
+    if (!widgets.some(widget => overlaps(box, boxOf(widget), FILE_GAP))) return;
+    const spot = freeFileSpot(file);
+    if (spot) { setPosition(file, spot.x, spot.y); savePosition(file); }
+  });
 }
 
 function applyPositions() {
   const positions = readPositions();
-  movableItems.filter(item => !item.classList.contains('desktop-widget')).forEach(item => {
+  projectFileItems.forEach(item => {
     const position = positions[itemId(item)];
-    if (!desktopLayout.matches || !position) {
+    if (!desktopLayout.matches || !Number.isFinite(position?.x)) {
       item.style.left = '';
       item.style.top = '';
       item.style.right = '';
       return;
     }
-    const maxX = Math.max(0, workspace.clientWidth - item.offsetWidth);
-    const maxY = Math.max(0, workspace.clientHeight - item.offsetHeight);
-    item.style.left = `${Math.round(Math.min(1, Math.max(0, position.x)) * maxX)}px`;
-    item.style.top = `${Math.round(Math.min(1, Math.max(0, position.y)) * maxY)}px`;
-    item.style.right = 'auto';
+    const {maxX, maxY} = limitsOf(item);
+    setPosition(item, clamp(position.x, 0, 1) * maxX, clamp(position.y, 0, 1) * maxY);
   });
   if (!desktopLayout.matches) {
     widgets.forEach(item => {
@@ -172,20 +275,21 @@ function applyPositions() {
     });
     return;
   }
-  const grid = widgetGrid();
-  const occupied = [];
+  const gap = widgetGap();
+  const cellWidth = widgets[0].offsetWidth;
+  const cellHeight = widgets[0].offsetHeight;
+  const placed = [];
   widgets.forEach(item => {
-    const position = positions[itemId(item)];
-    const [defaultCol, defaultRow] = defaultWidgetCells[item.dataset.dragId];
-    const wantedX = Number.isInteger(position?.col) ? grid.left + position.col * grid.stepX :
-      typeof position?.x === 'number' ? position.x * Math.max(0, workspace.clientWidth - item.offsetWidth) :
-      grid.left + defaultCol * grid.stepX;
-    const wantedY = Number.isInteger(position?.row) ? grid.top + position.row * grid.stepY :
-      typeof position?.y === 'number' ? position.y * Math.max(0, workspace.clientHeight - item.offsetHeight) :
-      grid.top + defaultRow * grid.stepY;
-    placeWidget(item, wantedX, wantedY, occupied);
-    occupied.push(item);
+    const saved = positions[itemId(item)];
+    const [col, row] = defaultWidgetCells[item.dataset.dragId];
+    const {maxX, maxY} = limitsOf(item);
+    const x = clamp(Number.isFinite(saved?.left) ? saved.left : EDGE_MARGIN + col * (cellWidth + gap), 0, maxX);
+    const y = clamp(Number.isFinite(saved?.top) ? saved.top : EDGE_MARGIN + row * (cellHeight + gap), 0, maxY);
+    const spot = freeWidgetSpot(item, x, y, placed) || {x, y};
+    setPosition(item, spot.x, spot.y);
+    placed.push({x: spot.x, y: spot.y, w: item.offsetWidth, h: item.offsetHeight});
   });
+  clearFilesFromWidgets();
 }
 
 movableItems.forEach(item => {
@@ -213,11 +317,8 @@ movableItems.forEach(item => {
     if (!drag.moved && Math.hypot(dx, dy) < 5) return;
     drag.moved = true;
     item.classList.add('dragging');
-    const maxX = Math.max(0, workspace.clientWidth - item.offsetWidth);
-    const maxY = Math.max(0, workspace.clientHeight - item.offsetHeight);
-    item.style.left = `${Math.round(Math.min(maxX, Math.max(0, drag.left + dx)))}px`;
-    item.style.top = `${Math.round(Math.min(maxY, Math.max(0, drag.top + dy)))}px`;
-    item.style.right = 'auto';
+    const {maxX, maxY} = limitsOf(item);
+    setPosition(item, clamp(drag.left + dx, 0, maxX), clamp(drag.top + dy, 0, maxY));
   });
 
   function finishDrag(event) {
@@ -225,9 +326,16 @@ movableItems.forEach(item => {
     item.classList.remove('dragging');
     if (drag.moved) {
       if (item.classList.contains('desktop-widget')) {
-        placeWidget(item, parseFloat(item.style.left), parseFloat(item.style.top), widgets.filter(other => other !== item));
+        // Dropped on a spot with no free room: the widget returns to where the drag began.
+        if (!placeWidget(item, parseFloat(item.style.left), parseFloat(item.style.top), {snap: true})) {
+          setPosition(item, drag.left, drag.top);
+        }
+        savePosition(item);
+        clearFilesFromWidgets();
+      } else {
+        clearFilesFromWidgets([item]);
+        savePosition(item);
       }
-      savePosition(item);
       suppressClick = true;
       setTimeout(() => { suppressClick = false; }, 500);
     }
@@ -244,9 +352,8 @@ movableItems.forEach(item => {
   }, true);
 });
 
-// Keyboard alternative to dragging: arrow keys move the focused widget by one grid cell
-// or the focused file by 16 px. This covers keyboard users; a single-pointer alternative
-// (WCAG 2.5.7) is still to be designed.
+// Keyboard alternative to dragging: arrow keys move the focused widget or file by 16 px.
+// A single-pointer alternative (WCAG 2.5.7) is still to be designed.
 const arrowDirections = {ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1]};
 movableItems.forEach(item => {
   item.addEventListener('keydown', event => {
@@ -254,35 +361,66 @@ movableItems.forEach(item => {
     if (!direction || event.target !== item || !desktopLayout.matches) return;
     if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
     event.preventDefault();
+    const step = 16;
+    const box = boxOf(item);
+    const x = box.x + direction[0] * step;
+    const y = box.y + direction[1] * step;
     if (item.classList.contains('desktop-widget')) {
-      const grid = widgetGrid();
-      const col = Number(item.dataset.gridCol) + direction[0];
-      const row = Number(item.dataset.gridRow) + direction[1];
-      if (col < 0 || row < 0) return;
-      const previous = {col: item.dataset.gridCol, row: item.dataset.gridRow, left: item.style.left, top: item.style.top};
-      placeWidget(item, grid.left + col * grid.stepX, grid.top + row * grid.stepY, widgets.filter(other => other !== item));
-      if (Number(item.dataset.gridCol) === col && Number(item.dataset.gridRow) === row) {
+      if (placeWidget(item, x, y, {exact: true})) {
         savePosition(item);
-      } else {
-        item.dataset.gridCol = previous.col;
-        item.dataset.gridRow = previous.row;
-        item.style.left = previous.left;
-        item.style.top = previous.top;
+        clearFilesFromWidgets();
       }
       return;
     }
-    const step = 16;
-    const maxX = Math.max(0, workspace.clientWidth - item.offsetWidth);
-    const maxY = Math.max(0, workspace.clientHeight - item.offsetHeight);
-    item.style.left = `${Math.min(maxX, Math.max(0, item.offsetLeft + direction[0] * step))}px`;
-    item.style.top = `${Math.min(maxY, Math.max(0, item.offsetTop + direction[1] * step))}px`;
-    item.style.right = 'auto';
+    const {maxX, maxY} = limitsOf(item);
+    const moved = {x: clamp(x, 0, maxX), y: clamp(y, 0, maxY), w: box.w, h: box.h};
+    if (widgets.some(widget => overlaps(moved, boxOf(widget), FILE_GAP))) return;
+    setPosition(item, moved.x, moved.y);
     savePosition(item);
   });
 });
 
+// Right click on the desktop opens a small menu, as on the Mac. "Restaurar posições" lives here.
+const contextMenu = document.querySelector('#context-menu');
+let contextOrigin = null;
+
+function hideContextMenu() {
+  if (contextMenu.hidden) return;
+  contextMenu.hidden = true;
+  if (contextOrigin && typeof contextOrigin.focus === 'function') contextOrigin.focus();
+  contextOrigin = null;
+}
+
+document.addEventListener('contextmenu', event => {
+  if (!desktopLayout.matches || event.target.closest('.window, .dock, .context-menu')) return;
+  event.preventDefault();
+  let x = event.clientX;
+  let y = event.clientY;
+  if (!x && !y) {
+    const rect = event.target.getBoundingClientRect();
+    x = rect.left + rect.width / 2;
+    y = rect.top + rect.height / 2;
+  }
+  contextOrigin = document.activeElement;
+  contextMenu.hidden = false;
+  contextMenu.style.left = `${Math.max(8, Math.min(x, window.innerWidth - contextMenu.offsetWidth - 8))}px`;
+  contextMenu.style.top = `${Math.max(8, Math.min(y, window.innerHeight - contextMenu.offsetHeight - 8))}px`;
+  contextMenu.querySelector('button').focus();
+});
+document.addEventListener('pointerdown', event => {
+  if (!event.target.closest('.context-menu') && !contextMenu.hidden) { contextOrigin = null; hideContextMenu(); }
+});
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && !contextMenu.hidden) hideContextMenu();
+});
+
 document.querySelector('#reset-layout').addEventListener('click', () => {
-  try { localStorage.removeItem(layoutStorageKey); } catch { /* Ignore disabled storage. */ }
+  try {
+    localStorage.removeItem(layoutStorageKey);
+    localStorage.removeItem(legacyLayoutStorageKey);
+  } catch { /* Ignore disabled storage. */ }
+  contextOrigin = null;
+  hideContextMenu();
   applyPositions();
 });
 window.addEventListener('resize', applyPositions);
@@ -315,12 +453,12 @@ document.addEventListener('pointerdown', event => {
 });
 
 const dock = document.querySelector('.dock');
-const dockApps = [...dock.querySelectorAll('button, a')];
+const dockApps = () => dock.querySelectorAll('button, a');
 const canMagnifyDock = window.matchMedia('(hover: hover) and (pointer: fine)');
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 function resetDockWave() {
-  dockApps.forEach(app => {
+  dockApps().forEach(app => {
     app.style.removeProperty('--dock-lift');
     app.style.removeProperty('--dock-scale');
   });
@@ -328,7 +466,7 @@ function resetDockWave() {
 
 dock.addEventListener('pointermove', event => {
   if (!canMagnifyDock.matches || reduceMotion.matches || event.pointerType === 'touch') return;
-  dockApps.forEach(app => {
+  dockApps().forEach(app => {
     const rect = app.getBoundingClientRect();
     const distance = Math.abs(event.clientX - (rect.left + rect.width / 2));
     const wave = Math.exp(-0.5 * (distance / 52) ** 2);
@@ -340,3 +478,194 @@ dock.addEventListener('pointermove', event => {
 dock.addEventListener('pointerleave', resetDockWave);
 canMagnifyDock.addEventListener('change', resetDockWave);
 reduceMotion.addEventListener('change', resetDockWave);
+
+// Window controls, as in macOS: red closes, yellow minimizes to the Dock (scale effect), green enters
+// full screen and Option-click zooms. Double click on the title bar zooms. Inactive windows turn gray.
+const desktopEl = document.querySelector('.desktop');
+const minimizeButton = win.querySelector('.minimize');
+const zoomButton = win.querySelector('.zoom');
+const windowBar = win.querySelector('.window-bar');
+const WINDOW_MS = 450;
+const WINDOW_EASE = 'cubic-bezier(.2,.8,.2,1)';
+const ZOOM_RESERVE = 84; // keeps the Dock visible when zooming
+let windowMode = 'normal';
+let minimizedThumb = null;
+let closing = false;
+
+function syncWindowControls() {
+  win.classList.toggle('is-fullscreen', windowMode === 'fullscreen');
+  win.classList.toggle('is-zoomed', windowMode === 'zoomed');
+  if (windowMode !== 'fullscreen') win.classList.remove('autohide');
+  desktopEl.classList.toggle('has-fullscreen', windowMode === 'fullscreen');
+  minimizeButton.disabled = windowMode === 'fullscreen';
+  zoomButton.disabled = !desktopLayout.matches;
+  zoomButton.setAttribute('aria-label', windowMode === 'fullscreen' ? 'Sair da tela cheia' : 'Tela cheia');
+}
+
+function pinWindowBox() {
+  const rect = win.getBoundingClientRect();
+  Object.assign(win.style, {
+    left: `${rect.left}px`, top: `${rect.top}px`, width: `${rect.width}px`, height: `${rect.height}px`,
+    maxHeight: 'none', transform: 'none', borderRadius: getComputedStyle(win).borderRadius
+  });
+  return rect;
+}
+
+function releaseWindowBox() {
+  ['left', 'top', 'width', 'height', 'maxHeight', 'transform', 'transformOrigin', 'transition', 'opacity', 'borderRadius']
+    .forEach(property => { win.style[property] = ''; });
+}
+
+function resetWindowState() {
+  windowMode = 'normal';
+  releaseWindowBox();
+  desktopEl.classList.remove('window-open');
+  syncWindowControls();
+}
+
+function transitionWindow(target, properties, done) {
+  if (reduceMotion.matches) { Object.assign(win.style, target); done(); return; }
+  win.style.transition = properties.map(property => `${property} ${WINDOW_MS}ms ${WINDOW_EASE}`).join(', ');
+  void win.offsetWidth;
+  Object.assign(win.style, target);
+  let finished = false;
+  const end = () => {
+    if (finished) return;
+    finished = true;
+    win.removeEventListener('transitionend', onEnd);
+    done();
+  };
+  const onEnd = event => { if (event.target === win) end(); };
+  win.addEventListener('transitionend', onEnd);
+  setTimeout(end, WINDOW_MS + 80);
+}
+
+function playOpenAnimation() {
+  win.animate(
+    [{opacity: 0, scale: 0.94, translate: '0 4%'}, {opacity: 1, scale: 1, translate: '0 0'}],
+    {duration: 250, easing: WINDOW_EASE}
+  );
+}
+
+function expandWindow(mode) {
+  if (!desktopLayout.matches || win.hidden || windowMode === mode) return;
+  const desk = desktopEl.getBoundingClientRect();
+  const target = {
+    left: '0px', top: '0px', width: `${desk.width}px`,
+    height: `${mode === 'fullscreen' ? desk.height : desk.height - ZOOM_RESERVE}px`,
+    borderRadius: mode === 'fullscreen' ? '0px' : getComputedStyle(win).borderRadius
+  };
+  pinWindowBox();
+  windowMode = mode;
+  syncWindowControls();
+  transitionWindow(target, ['left', 'top', 'width', 'height', 'border-radius'], () => {
+    releaseWindowBox();
+    if (windowMode === 'fullscreen') win.classList.add('autohide');
+  });
+}
+
+function collapseWindow() {
+  if (windowMode === 'normal' || win.hidden) return;
+  const from = win.getBoundingClientRect();
+  const fromRadius = getComputedStyle(win).borderRadius;
+  releaseWindowBox();
+  windowMode = 'normal';
+  syncWindowControls();
+  const to = win.getBoundingClientRect();
+  const toRadius = getComputedStyle(win).borderRadius;
+  Object.assign(win.style, {
+    left: `${from.left}px`, top: `${from.top}px`, width: `${from.width}px`, height: `${from.height}px`,
+    maxHeight: 'none', transform: 'none', borderRadius: fromRadius
+  });
+  transitionWindow(
+    {left: `${to.left}px`, top: `${to.top}px`, width: `${to.width}px`, height: `${to.height}px`, borderRadius: toRadius},
+    ['left', 'top', 'width', 'height', 'border-radius'], releaseWindowBox
+  );
+}
+
+function createDockThumb() {
+  const title = document.querySelector('#window-title').textContent;
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'dock-minimized is-pending';
+  button.setAttribute('aria-label', `Restaurar janela: ${title}`);
+  button.innerHTML = '<span class="dock-icon dock-thumb"><span class="thumb-bar"></span><span class="thumb-title"></span></span><small></small>';
+  button.querySelector('.thumb-title').textContent = title;
+  button.querySelector('small').textContent = title;
+  button.addEventListener('click', restoreWindow);
+  dock.insertBefore(button, dock.querySelector('[data-open="lixeira"]'));
+  return button;
+}
+
+function minimizeWindow() {
+  if (win.hidden || minimizedThumb || windowMode === 'fullscreen') return;
+  const thumb = createDockThumb();
+  const to = thumb.getBoundingClientRect();
+  const from = pinWindowBox();
+  win.style.transformOrigin = 'top left';
+  minimizedThumb = thumb;
+  transitionWindow({
+    transform: `translate(${to.left - from.left}px, ${to.top - from.top}px) scale(${to.width / from.width}, ${to.height / from.height})`,
+    opacity: '0.25'
+  }, ['transform', 'opacity'], () => {
+    win.hidden = true;
+    releaseWindowBox();
+    desktopEl.classList.remove('window-open');
+    thumb.classList.remove('is-pending');
+  });
+}
+
+function restoreWindow() {
+  const thumb = minimizedThumb;
+  if (!thumb) return;
+  win.hidden = false;
+  win.classList.remove('is-inactive');
+  desktopEl.classList.add('window-open');
+  const to = win.getBoundingClientRect();
+  const from = thumb.getBoundingClientRect();
+  thumb.classList.add('is-pending');
+  Object.assign(win.style, {
+    left: `${to.left}px`, top: `${to.top}px`, width: `${to.width}px`, height: `${to.height}px`,
+    maxHeight: 'none', transformOrigin: 'top left', opacity: '0.25',
+    transform: `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(${from.width / to.width}, ${from.height / to.height})`
+  });
+  transitionWindow({transform: 'none', opacity: '1'}, ['transform', 'opacity'], () => {
+    releaseWindowBox();
+    thumb.remove();
+    minimizedThumb = null;
+    document.querySelector('.close').focus();
+  });
+}
+
+function clearMinimized() {
+  if (minimizedThumb) minimizedThumb.remove();
+  minimizedThumb = null;
+  resetWindowState();
+}
+
+minimizeButton.addEventListener('click', minimizeWindow);
+zoomButton.addEventListener('click', event => {
+  if (!desktopLayout.matches) return;
+  if (event.altKey) {
+    if (windowMode === 'zoomed') collapseWindow(); else expandWindow('zoomed');
+  } else if (windowMode === 'fullscreen') {
+    collapseWindow();
+  } else {
+    expandWindow('fullscreen');
+  }
+});
+windowBar.addEventListener('dblclick', event => {
+  if (event.target.closest('.traffic, .window-home') || !desktopLayout.matches || windowMode === 'fullscreen') return;
+  if (windowMode === 'zoomed') collapseWindow(); else expandWindow('zoomed');
+});
+document.addEventListener('keydown', event => { if (event.key === 'Alt') win.classList.add('alt-down'); });
+document.addEventListener('keyup', event => { if (event.key === 'Alt') win.classList.remove('alt-down'); });
+window.addEventListener('blur', () => win.classList.remove('alt-down'));
+document.addEventListener('pointerdown', event => {
+  if (!win.hidden) win.classList.toggle('is-inactive', !event.target.closest('.window'));
+}, true);
+window.addEventListener('resize', () => {
+  if (!desktopLayout.matches && windowMode !== 'normal') { windowMode = 'normal'; releaseWindowBox(); }
+  syncWindowControls();
+});
+syncWindowControls();

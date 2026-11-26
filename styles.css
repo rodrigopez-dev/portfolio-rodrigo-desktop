@@ -295,9 +295,67 @@
 .desktop-item.is-selected{background:rgba(72,137,239,.28);border-color:rgba(194,220,255,.65);outline:none}
 
 /* Refinements from the 26/11/2026 design research: hit area, focus label, glyph, tracking, phone wallpaper. */
-.traffic .close{position:relative}
-.traffic .close::after{content:"";position:absolute;inset:-7px}
-.traffic .close:focus-visible{outline:2px solid #0a84ff;outline-offset:3px}
+
+
+
 .dock button:focus-visible small,.dock a:focus-visible small{opacity:1;transform:translateX(-50%)}
 .widget-motion-symbol svg{display:block;width:11px;height:11px;fill:currentColor}
 @media(max-width:700px){.wallpaper{background-image:url("assets/wallpaper-v4-mobile.jpg")}}
+
+/* No menu bar: the desktop starts at the top edge. */
+.workspace{inset:0 0 98px}
+@media(max-width:700px){.workspace{inset:auto}}
+.window{animation:none}
+
+/* Mac window controls: red closes, yellow minimizes to the Dock, green enters full screen (Option zooms). */
+.traffic{align-items:center;gap:8px}
+.traffic button{position:relative;display:grid;place-items:center;width:13px;height:13px;padding:0;border:1px solid rgba(0,0,0,.14);border-radius:50%;box-shadow:inset 0 1px rgba(255,255,255,.35);cursor:default}
+.traffic button::after{content:"";position:absolute;inset:-4px}
+.traffic .close{background:#ff5f57;color:#4d0000}
+.traffic .minimize{background:#febc2e;color:#985700}
+.traffic .zoom{background:#28c840;color:#006500}
+.traffic button svg{width:9px;height:9px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;opacity:0;pointer-events:none}
+.traffic button svg .fill{fill:currentColor;stroke:none}
+.traffic:hover button svg,.traffic:has(:focus-visible) button svg{opacity:1}
+.traffic button:active{filter:brightness(.78)}
+.traffic button:focus-visible{outline:2px solid #0a84ff;outline-offset:3px}
+.traffic .zoom .glyph-exit,.traffic .zoom .glyph-zoom{display:none}
+.window.is-fullscreen .zoom .glyph-full,.window.alt-down .zoom .glyph-full{display:none}
+.window.is-fullscreen .zoom .glyph-exit{display:block}
+.window.alt-down:not(.is-fullscreen) .zoom .glyph-zoom{display:block}
+.traffic button:disabled{background:#d1d1d6;border-color:rgba(0,0,0,.1);color:#9a9aa0}
+.window.is-inactive .traffic button:not(:disabled){background:#d1d1d6;border-color:rgba(0,0,0,.1)}
+.window.is-inactive .traffic:hover .close:not(:disabled){background:#ff5f57}
+.window.is-inactive .traffic:hover .minimize:not(:disabled){background:#febc2e}
+.window.is-inactive .traffic:hover .zoom:not(:disabled){background:#28c840}
+
+/* Window states: zoom fills the desktop but keeps the Dock; full screen also hides the Dock and the title bar. */
+.window.is-fullscreen,.window.is-zoomed{left:0;top:0;width:100%;max-height:none;transform:none}
+.window.is-fullscreen{height:100%;border-width:0;border-radius:0}
+.window.is-zoomed{height:calc(100% - 84px)}
+.window.is-fullscreen .window-shell,.window.is-zoomed .window-shell{height:calc(100% - 50px);max-height:none}
+.window.is-fullscreen .window-content,.window.is-zoomed .window-content{max-height:none}
+.window-hotzone{display:none}
+.window.is-fullscreen.autohide .window-hotzone{display:block;position:absolute;inset:0 0 auto;height:8px;z-index:3}
+.window.is-fullscreen.autohide .window-bar{position:absolute;inset:0 0 auto;z-index:2;transform:translateY(-100%);transition:transform .25s cubic-bezier(.2,.8,.2,1)}
+.window.is-fullscreen.autohide .window-hotzone:hover + .window-bar,.window.is-fullscreen.autohide .window-bar:hover,.window.is-fullscreen.autohide .window-bar:focus-within{transform:none}
+.window.is-fullscreen.autohide .window-shell{height:100%}
+.dock{transition:transform .4s cubic-bezier(.2,.8,.2,1)}
+.desktop.has-fullscreen .dock{transform:translate(-50%,calc(100% + 24px))}
+
+/* A minimized window waits in the Dock as a small thumbnail. */
+.dock-minimized.is-pending{opacity:0}
+.dock-icon.dock-thumb,.dock-icon.dock-thumb:has(img){display:block;width:52px;height:40px;border-radius:7px;overflow:hidden;background:#f7f8fa;box-shadow:0 2px 6px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.85)}
+.dock-thumb .thumb-bar{position:relative;display:block;height:9px;border-bottom:1px solid #d7dce2;background:linear-gradient(#fff,#e8ecf1)}
+.dock-thumb .thumb-bar::before{content:"";position:absolute;left:4px;top:3px;width:3px;height:3px;border-radius:50%;background:#ff5f57;box-shadow:5px 0 #febc2e,10px 0 #28c840}
+.dock-thumb .thumb-title{display:block;max-height:24px;padding:5px 4px;overflow:hidden;color:#18212b;font-size:6px;font-weight:700;line-height:1.15;text-align:left}
+
+/* Widgets fade toward monochrome while a window is in use, like "Esmaecer widgets na mesa". */
+.desktop.window-open .desktop-widget{filter:saturate(.12) brightness(.94)}
+
+/* Right-click menu on the desktop. */
+.context-menu{position:fixed;z-index:40;min-width:190px;padding:5px;border:1px solid rgba(255,255,255,.55);border-radius:12px;background:rgba(246,247,250,.84);box-shadow:0 12px 32px rgba(0,0,0,.28);backdrop-filter:blur(24px) saturate(140%);-webkit-backdrop-filter:blur(24px) saturate(140%)}
+.context-menu[hidden]{display:none}
+.context-menu button{display:block;width:100%;padding:7px 12px;border:0;border-radius:7px;background:transparent;color:#18212b;font-family:inherit;font-size:.83rem;font-weight:500;line-height:1.2;text-align:left;cursor:default}
+.context-menu button:hover,.context-menu button:focus-visible{background:#0a84ff;color:#fff;outline:none}
+@media(prefers-reduced-transparency:reduce){.context-menu{background:#f6f7fa;backdrop-filter:none;-webkit-backdrop-filter:none}}
