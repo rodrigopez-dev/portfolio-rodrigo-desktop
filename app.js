@@ -53,6 +53,113 @@ function tick() {
   const now = new Date();
   document.querySelector('#clock').textContent = now.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
   document.querySelector('#date').textContent = now.toLocaleDateString('pt-BR', {weekday:'short',day:'2-digit',month:'short'});
+  document.querySelector('#widget-weekday').textContent = now.toLocaleDateString('pt-BR', {weekday:'long'}).toUpperCase();
+  document.querySelector('#widget-day').textContent = now.getDate();
+  document.querySelector('#widget-month').textContent = now.toLocaleDateString('pt-BR', {month:'long'}).toUpperCase();
 }
 tick();
 setInterval(tick, 30000);
+
+const workspace = document.querySelector('.workspace');
+const movableItems = [...workspace.querySelectorAll('.desktop-item, .desktop-widget')];
+const desktopLayout = window.matchMedia('(min-width: 701px)');
+const layoutStorageKey = 'portfolio.desktop.positions.v1';
+
+function itemId(item) {
+  return item.classList.contains('desktop-widget') ? `widget:${item.dataset.dragId}` : `project:${item.dataset.open}`;
+}
+
+function readPositions() {
+  try { return JSON.parse(localStorage.getItem(layoutStorageKey)) || {}; }
+  catch { return {}; }
+}
+
+function savePosition(item) {
+  const positions = readPositions();
+  const maxX = Math.max(0, workspace.clientWidth - item.offsetWidth);
+  const maxY = Math.max(0, workspace.clientHeight - item.offsetHeight);
+  positions[itemId(item)] = {
+    x: maxX ? Math.min(1, Math.max(0, parseFloat(item.style.left) / maxX)) : 0,
+    y: maxY ? Math.min(1, Math.max(0, parseFloat(item.style.top) / maxY)) : 0
+  };
+  try { localStorage.setItem(layoutStorageKey, JSON.stringify(positions)); }
+  catch { /* The desktop still works when browser storage is unavailable. */ }
+}
+
+function applyPositions() {
+  const positions = readPositions();
+  movableItems.forEach(item => {
+    const position = positions[itemId(item)];
+    if (!desktopLayout.matches || !position) {
+      item.style.left = '';
+      item.style.top = '';
+      item.style.right = '';
+      return;
+    }
+    const maxX = Math.max(0, workspace.clientWidth - item.offsetWidth);
+    const maxY = Math.max(0, workspace.clientHeight - item.offsetHeight);
+    item.style.left = `${Math.round(Math.min(1, Math.max(0, position.x)) * maxX)}px`;
+    item.style.top = `${Math.round(Math.min(1, Math.max(0, position.y)) * maxY)}px`;
+    item.style.right = 'auto';
+  });
+}
+
+movableItems.forEach(item => {
+  let drag = null;
+  let suppressClick = false;
+
+  item.addEventListener('pointerdown', event => {
+    if (!desktopLayout.matches || event.button !== 0 || event.target.closest('.desktop-widget button')) return;
+    const itemRect = item.getBoundingClientRect();
+    const workspaceRect = workspace.getBoundingClientRect();
+    drag = {
+      pointerId: event.pointerId,
+      startX: event.clientX, startY: event.clientY,
+      left: itemRect.left - workspaceRect.left,
+      top: itemRect.top - workspaceRect.top,
+      moved: false
+    };
+    item.setPointerCapture(event.pointerId);
+  });
+
+  item.addEventListener('pointermove', event => {
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    const dx = event.clientX - drag.startX;
+    const dy = event.clientY - drag.startY;
+    if (!drag.moved && Math.hypot(dx, dy) < 5) return;
+    drag.moved = true;
+    item.classList.add('dragging');
+    const maxX = Math.max(0, workspace.clientWidth - item.offsetWidth);
+    const maxY = Math.max(0, workspace.clientHeight - item.offsetHeight);
+    item.style.left = `${Math.round(Math.min(maxX, Math.max(0, drag.left + dx)))}px`;
+    item.style.top = `${Math.round(Math.min(maxY, Math.max(0, drag.top + dy)))}px`;
+    item.style.right = 'auto';
+  });
+
+  function finishDrag(event) {
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    if (drag.moved) {
+      savePosition(item);
+      suppressClick = true;
+      setTimeout(() => { suppressClick = false; }, 500);
+    }
+    item.classList.remove('dragging');
+    drag = null;
+  }
+
+  item.addEventListener('pointerup', finishDrag);
+  item.addEventListener('pointercancel', finishDrag);
+  item.addEventListener('click', event => {
+    if (!suppressClick) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    suppressClick = false;
+  }, true);
+});
+
+document.querySelector('#reset-layout').addEventListener('click', () => {
+  try { localStorage.removeItem(layoutStorageKey); } catch { /* Ignore disabled storage. */ }
+  applyPositions();
+});
+window.addEventListener('resize', applyPositions);
+applyPositions();
