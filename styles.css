@@ -64,3 +64,7 @@
 .wallpaper{background-position:center center;background-size:cover}
 @media(min-width:701px){.p3{left:auto;right:28%;top:4%}.p4{right:17%;top:23%}.p5{right:7%;top:8%}.p7{left:auto;right:28%;top:61%}.p8{right:13%;top:56%}}
 @media(max-width:700px){.wallpaper{background-position:center center;background-size:cover}}
+
+/* Nine-item Dock with compact section dividers at phone widths. */
+.dock-separator{flex:0 0 1px;align-self:center;margin:0 2px}
+@media(max-width:700px){.dock{gap:3px;padding:5px 6px;max-width:calc(100vw - 10px)}.dock-icon{width:clamp(28px,8.8vw,40px);height:clamp(28px,8.8vw,40px)}.dock-separator{height:28px;margin:0 1px}.dock-icon svg{width:75%;height:75%}}

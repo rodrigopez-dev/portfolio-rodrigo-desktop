@@ -20,6 +20,7 @@ Object.assign(projects, {
   contato: {type:'Contato',title:'Vamos conversar',description:'Aqui entram seu e-mail, Instagram e outros links de contato.',year:'Contato',skills:'Links em preparação',preview:'Seus contatos'},
   notas: {type:'Aplicativo',title:'Bloco de Notas',description:'Um lugar para ideias, bastidores e anotações sobre o seu trabalho.',year:'Notas',skills:'Conteúdo em preparação',preview:'Suas notas'},
   apresentacoes: {type:'Aplicativo',title:'PowerPoint',description:'Apresentações e estudos de caso poderão ser acessados por aqui.',year:'Decks',skills:'Conteúdo em preparação',preview:'Suas apresentações'},
+  fotos: {type:'Aplicativo',title:'Fotos',description:'Um espaço para reunir imagens dos projetos e bastidores do processo criativo.',year:'Galeria',skills:'Conteúdo em preparação',preview:'Sua galeria'},
   lixeira: {type:'Sistema',title:'Lixeira',description:'A lixeira está vazia.',year:'Vazio',skills:'Nenhum arquivo removido',preview:'Lixeira vazia'}
 });
 

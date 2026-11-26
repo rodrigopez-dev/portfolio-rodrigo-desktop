@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Portfólio criativo apresentado como um desktop interativo." />
   <title>Meu Portfólio — Desktop Criativo</title>
-  <link rel="stylesheet" href="styles.css?v=5" />
+  <link rel="stylesheet" href="styles.css?v=6" />
 </head>
 <body>
   <main class="desktop" aria-label="Portfólio em formato de desktop">
@@ -62,16 +62,21 @@
       </div>
     </section>
 
-    <nav class="dock" aria-label="Atalhos">
-      <button data-open="notas" aria-label="Bloco de Notas"><span class="dock-icon"><img src="assets/notes.png" alt="" /></span><small>Notas</small></button>
+    <nav class="dock" aria-label="Aplicativos">
+      <button data-open="motion" aria-label="After Effects"><span class="dock-icon"><img src="assets/aftereffects.svg" alt="" /></span><small>After Effects</small></button>
+      <button data-open="foto" aria-label="Photoshop"><span class="dock-icon"><img src="assets/photoshop.svg" alt="" /></span><small>Photoshop</small></button>
+      <button data-open="identidade" aria-label="Illustrator"><span class="dock-icon"><img src="assets/illustrator.svg" alt="" /></span><small>Illustrator</small></button>
       <button data-open="apresentacoes" aria-label="PowerPoint"><span class="dock-icon"><img src="assets/powerpoint.png" alt="" /></span><small>PowerPoint</small></button>
-      <button data-open="experimentos" aria-label="Atalhos"><span class="dock-icon"><img src="assets/shortcuts.png" alt="" /></span><small>Atalhos</small></button>
-      <span class="dock-separator"></span>
+      <span class="dock-separator" role="separator" aria-orientation="vertical"></span>
+      <button data-open="notas" aria-label="Bloco de Notas"><span class="dock-icon"><img src="assets/notes.png" alt="" /></span><small>Notas</small></button>
+      <button data-open="fotos" aria-label="Fotos"><span class="dock-icon"><img src="assets/photos.png" alt="" /></span><small>Fotos</small></button>
+      <span class="dock-separator" role="separator" aria-orientation="vertical"></span>
       <a href="#" id="instagram" aria-label="Instagram"><span class="dock-icon"><img src="assets/instagram.png" alt="" /></span><small>Instagram</small></a>
-      <button data-open="contato" aria-label="Contato"><span class="dock-icon"><img src="assets/mail.png" alt="" /></span><small>E-mail</small></button>
+      <button data-open="contato" aria-label="E-mail"><span class="dock-icon"><img src="assets/mail.png" alt="" /></span><small>E-mail</small></button>
+      <span class="dock-separator" role="separator" aria-orientation="vertical"></span>
       <button data-open="lixeira" aria-label="Lixeira"><span class="dock-icon trash"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M14 15h20l-2 25H16l-2-25ZM11 13h26M19 10h10M21 20v15m6-15v15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><small>Lixeira</small></button>
     </nav>
   </main>
-  <script src="app.js"></script>
+  <script src="app.js?v=2"></script>
 </body>
 </html>
