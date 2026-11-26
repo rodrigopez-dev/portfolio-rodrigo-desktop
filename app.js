@@ -16,6 +16,7 @@ const projects = Object.fromEntries(Object.entries(projectTitles).map(([key, [ti
 }]));
 
 Object.assign(projects, {
+  calendario: {type:'Calendário',title:'Hoje',description:'',year:'',skills:'',preview:'Seu calendário'},
   sobre: {type:'Perfil',title:'Sobre mim',description:'Espaço para sua apresentação, trajetória e forma de trabalhar.',year:'Perfil',skills:'Texto em preparação',preview:'Sua apresentação'},
   contato: {type:'Contato',title:'Vamos conversar',description:'Aqui entram seu e-mail, Instagram e outros links de contato.',year:'Contato',skills:'Links em preparação',preview:'Seus contatos'},
   notas: {type:'Aplicativo',title:'Bloco de Notas',description:'Um lugar para ideias, bastidores e anotações sobre o seu trabalho.',year:'Notas',skills:'Conteúdo em preparação',preview:'Suas notas'},
@@ -53,9 +54,13 @@ function tick() {
   const now = new Date();
   document.querySelector('#clock').textContent = now.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
   document.querySelector('#date').textContent = now.toLocaleDateString('pt-BR', {weekday:'short',day:'2-digit',month:'short'});
-  document.querySelector('#widget-weekday').textContent = now.toLocaleDateString('pt-BR', {weekday:'long'}).toUpperCase();
+  const weekday = now.toLocaleDateString('pt-BR', {weekday:'short'});
+  document.querySelector('#widget-weekday').textContent = weekday.charAt(0).toUpperCase() + weekday.slice(1);
   document.querySelector('#widget-day').textContent = now.getDate();
-  document.querySelector('#widget-month').textContent = now.toLocaleDateString('pt-BR', {month:'long'}).toUpperCase();
+  document.querySelector('#widget-month').textContent = now.toLocaleDateString('pt-BR', {month:'short'});
+  projects.calendario.description = now.toLocaleDateString('pt-BR', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  projects.calendario.year = String(now.getFullYear());
+  projects.calendario.skills = 'Data local';
 }
 tick();
 setInterval(tick, 30000);

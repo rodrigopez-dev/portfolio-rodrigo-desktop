@@ -72,24 +72,52 @@
 /* Desktop widgets and movable project files. */
 @media(min-width:701px){
   .workspace .desktop-item{touch-action:none;cursor:grab}
-  .workspace .p1{left:max(210px,16%)}
-  .workspace .p6{left:max(220px,18%)}
+  .workspace .p1{left:max(350px,25%);top:6%}
+  .workspace .p2{left:max(365px,29%);top:30%}
+  .workspace .p6{left:max(350px,27%);top:62%}
   .desktop-item.dragging,.desktop-widget.dragging{z-index:9;cursor:grabbing!important;background:rgba(255,255,255,.12)}
 }
-.desktop-widget{position:absolute;left:16px;width:185px;display:flex;flex-direction:column;align-items:flex-start;gap:7px;padding:16px;color:#fff;background:linear-gradient(145deg,rgba(42,43,51,.77),rgba(18,19,24,.66));border:1px solid rgba(255,255,255,.22);border-radius:22px;box-shadow:0 7px 25px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.18);backdrop-filter:blur(22px) saturate(145%);-webkit-backdrop-filter:blur(22px) saturate(145%);text-shadow:0 1px 2px #0008;user-select:none;touch-action:none;cursor:grab}
-.widget-calendar{top:20px;width:150px;min-height:142px;justify-content:space-between}
-.widget-about{top:178px;min-height:130px}
-.widget-feature{top:324px;min-height:142px}
-.desktop-widget .widget-kicker{font-size:.66rem;font-weight:750;letter-spacing:.13em;opacity:.73}
-.widget-calendar .widget-kicker{color:#ff7b73;opacity:1}
-.desktop-widget strong{font-size:1rem;line-height:1.12;letter-spacing:-.025em}
-.desktop-widget .widget-day{font-size:4.2rem;line-height:.88;letter-spacing:-.085em;font-variant-numeric:tabular-nums}
-.widget-month{font-size:.72rem;font-weight:750;letter-spacing:.13em;opacity:.8}
-.desktop-widget p{font-size:.72rem;line-height:1.35;margin:0;opacity:.73}
-.desktop-widget button{margin-top:auto;padding:0;border:0;background:none;color:#fff;font:700 .72rem/1.2 inherit;cursor:pointer;text-decoration:underline;text-decoration-color:#ffffff65;text-underline-offset:3px}
-.desktop-widget button:focus-visible{outline:2px solid #fff;outline-offset:4px;border-radius:3px}
-#reset-layout{font-size:.76rem;opacity:.74}
+.desktop-widget{position:absolute;display:flex;flex-direction:column;align-items:flex-start;appearance:none;padding:15px;width:145px;height:145px;border:1px solid rgba(255,255,255,.19);border-radius:22px;color:#fff;font:inherit;text-align:left;user-select:none;touch-action:none;cursor:grab;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.16),inset 0 1px rgba(255,255,255,.2);backdrop-filter:blur(24px) saturate(130%);-webkit-backdrop-filter:blur(24px) saturate(130%);transition:box-shadow .18s,border-color .18s,filter .18s}
+.desktop-widget:hover{border-color:rgba(255,255,255,.4);box-shadow:0 9px 24px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.25)}
+.desktop-widget:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.widget-calendar{left:16px;top:8px;justify-content:space-between;background:linear-gradient(145deg,rgba(29,29,33,.93),rgba(6,6,8,.92))}
+.widget-date-heading{display:flex;align-items:baseline;gap:5px;white-space:nowrap;font-size:1.18rem;font-weight:700;letter-spacing:-.045em}
+#widget-weekday{color:#ff625f}
+#widget-month{color:#a5a4aa}
+.widget-calendar .widget-day{font-size:5.4rem;line-height:.8;font-weight:600;letter-spacing:-.095em;font-variant-numeric:tabular-nums;margin-left:-4px}
+.widget-about{left:176px;top:8px;justify-content:space-between;background:linear-gradient(140deg,rgba(87,88,97,.79),rgba(37,38,46,.82))}
+.widget-about-heading{display:flex;align-items:center;gap:7px;font-size:.67rem;letter-spacing:.085em;font-weight:700;color:#e2e2e8}
+.widget-monogram{display:grid;place-items:center;width:20px;height:20px;border:1px solid rgba(255,255,255,.52);border-radius:6px;font-size:.75rem;letter-spacing:0}
+.widget-about>strong{font-size:1.34rem;line-height:1.02;letter-spacing:-.05em;font-weight:680}
+.widget-about-footer{font-size:.77rem;color:#dedee4}
+.widget-feature{left:16px;top:168px;width:305px;background:linear-gradient(135deg,rgba(75,78,88,.83),rgba(20,22,28,.9))}
+.widget-feature-heading{font-size:.69rem;font-weight:750;letter-spacing:.1em;color:#d5d8df}
+.widget-feature-body{display:flex;align-items:center;gap:17px;width:100%;flex:1}
+.widget-feature-art{display:grid;place-items:center;flex:0 0 82px;height:78px;border-radius:11px;background:linear-gradient(145deg,#edf1f3,#bfcad4);transform:rotate(-5deg);box-shadow:0 5px 13px #0004}
+.widget-feature-art span{display:grid;place-items:center;width:55px;height:48px;border-radius:7px;background:#b5ccd8;color:#34495d;font-size:1.5rem;font-weight:800;letter-spacing:-.06em}
+.widget-feature-copy{display:flex;flex-direction:column;gap:11px}
+.widget-feature-copy strong{font-size:1.23rem;line-height:1.05;letter-spacing:-.04em}
+.widget-feature-copy>span{font-size:.79rem;color:#dce1e7}
+#reset-layout{font-size:.76rem;opacity:.78}
 #reset-layout:hover{opacity:1}
-@media(min-width:701px) and (max-width:1100px){.desktop-widget{width:140px;padding:13px}.widget-calendar{width:128px}.widget-feature{top:324px}}
-@media(max-width:700px){.desktop-widget{position:relative;left:auto;top:auto;width:100%;min-height:120px;touch-action:auto;cursor:default}.widget-calendar{min-height:140px}.widget-feature{grid-column:1/-1}.desktop-widget button{min-height:30px}}
-@media(prefers-reduced-transparency:reduce){.desktop-widget{background:#24242a;backdrop-filter:none;-webkit-backdrop-filter:none}}
+@media(min-width:701px) and (max-width:1100px){
+  .workspace .p1{left:max(310px,31%)}
+  .workspace .p2{left:max(325px,33%)}
+  .workspace .p6{left:max(310px,31%)}
+  .desktop-widget{width:126px;height:126px;padding:12px;border-radius:20px}
+  .widget-about{left:153px}
+  .widget-feature{top:149px;width:263px}
+  .widget-calendar .widget-day{font-size:4.75rem}
+  .widget-date-heading{font-size:1.07rem}
+  .widget-about>strong{font-size:1.16rem}
+  .widget-feature-art{flex-basis:68px;height:68px}
+  .widget-feature-art span{width:47px;height:42px}
+  .widget-feature-copy strong{font-size:1.08rem}
+}
+@media(max-width:700px){
+  .desktop-widget{position:relative;left:auto;top:auto;width:100%;height:145px;min-width:0;order:-1;touch-action:auto;cursor:pointer}
+  .widget-feature{grid-column:1/-1;width:100%;order:-1}
+  .widget-calendar .widget-day{font-size:5.1rem}
+}
+@media(max-width:380px){.desktop-widget{padding:11px}.widget-date-heading{font-size:1.02rem}.widget-about>strong{font-size:1.15rem}}
+@media(prefers-reduced-transparency:reduce){.widget-calendar{background:#19191d}.widget-about{background:#43434b}.widget-feature{background:#30333b}.desktop-widget{backdrop-filter:none;-webkit-backdrop-filter:none}}

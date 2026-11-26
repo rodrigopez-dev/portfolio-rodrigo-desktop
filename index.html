@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Portfólio criativo apresentado como um desktop interativo." />
   <title>Meu Portfólio — Desktop Criativo</title>
-  <link rel="stylesheet" href="styles.css?v=8" />
+  <link rel="stylesheet" href="styles.css?v=9" />
 </head>
 <body>
   <main class="desktop" aria-label="Portfólio em formato de desktop">
@@ -47,23 +47,19 @@
       <button class="desktop-item p8" data-open="experimentos">
         <span class="project-file" aria-hidden="true"><span class="file-kind">PROJETO</span><span class="file-preview">LAB</span><span class="file-lines"></span></span><span>Experimentos</span>
       </button>
-      <article class="desktop-widget widget-calendar" data-drag-id="calendar" aria-label="Widget de calendário">
-        <span class="widget-kicker" id="widget-weekday">HOJE</span>
+      <button type="button" class="desktop-widget widget-calendar" data-drag-id="calendar" data-open="calendario" aria-label="Abrir calendário">
+        <span class="widget-date-heading"><span id="widget-weekday">Qui.</span><span id="widget-month">nov.</span></span>
         <strong class="widget-day" id="widget-day">26</strong>
-        <span class="widget-month" id="widget-month">NOVEMBRO</span>
-      </article>
-      <article class="desktop-widget widget-about" data-drag-id="about" aria-label="Widget de apresentação">
-        <span class="widget-kicker">PORTFÓLIO</span>
-        <strong>Rodrigo Pezotti</strong>
-        <p>Criação visual e experiências.</p>
-        <button type="button" data-open="sobre">Sobre mim ↗</button>
-      </article>
-      <article class="desktop-widget widget-feature" data-drag-id="feature" aria-label="Widget de projeto em destaque">
-        <span class="widget-kicker">EM DESTAQUE · 01/08</span>
-        <strong>Identidade visual</strong>
-        <p>Um ponto de partida para explorar os trabalhos.</p>
-        <button type="button" data-open="identidade">Abrir projeto ↗</button>
-      </article>
+      </button>
+      <button type="button" class="desktop-widget widget-about" data-drag-id="about" data-open="sobre" aria-label="Abrir apresentação de Rodrigo Pezotti">
+        <span class="widget-about-heading"><span class="widget-monogram" aria-hidden="true">R</span><span>PORTFÓLIO</span></span>
+        <strong>Rodrigo<br />Pezotti</strong>
+        <span class="widget-about-footer">Criação visual</span>
+      </button>
+      <button type="button" class="desktop-widget widget-feature" data-drag-id="feature" data-open="identidade" aria-label="Abrir projeto Identidade visual">
+        <span class="widget-feature-heading">ARQUIVO EM FOCO</span>
+        <span class="widget-feature-body"><span class="widget-feature-art" aria-hidden="true"><span>ID</span></span><span class="widget-feature-copy"><strong>Identidade<br />visual</strong><span>Explorar projeto</span></span></span>
+      </button>
     </section>
 
     <section class="window" id="project-window" role="dialog" aria-modal="false" aria-labelledby="window-title" hidden>
@@ -95,6 +91,6 @@
       <button data-open="lixeira" aria-label="Lixeira"><span class="dock-icon trash"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M14 15h20l-2 25H16l-2-25ZM11 13h26M19 10h10M21 20v15m6-15v15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><small>Lixeira</small></button>
     </nav>
   </main>
-  <script src="app.js?v=3"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>
