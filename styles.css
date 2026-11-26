@@ -267,3 +267,25 @@
 .trash img{transform:scale(2.05);filter:drop-shadow(0 2px 3px rgba(0,0,0,.25));pointer-events:none}
 @media(max-width:700px){.trash img{transform:scale(2.05)}}
 @media(prefers-reduced-motion:reduce){.dock-icon,.dock-icon:has(img){transition:none}.dock button .dock-icon,.dock a .dock-icon,.dock button:hover .dock-icon,.dock a:hover .dock-icon,.dock button:focus-visible .dock-icon,.dock a:focus-visible .dock-icon{transform:none}}
+
+/* SF Pro is supplied by Apple devices; Inter keeps similar proportions elsewhere. */
+@font-face{font-family:Inter;src:url("assets/fonts/inter-latin-variable.woff2") format("woff2");font-style:normal;font-weight:100 900;font-display:swap}
+:root{font-family:-apple-system,BlinkMacSystemFont,Inter,system-ui,sans-serif;font-optical-sizing:auto}
+.desktop-widget{transition:box-shadow .18s,border-color .18s,filter .18s,left .2s cubic-bezier(.2,.75,.2,1),top .2s cubic-bezier(.2,.75,.2,1)}
+.desktop-widget.dragging{transition:none}
+.widget-date-heading{font-weight:600;letter-spacing:-.025em}
+.widget-calendar .widget-day{font-weight:500;letter-spacing:-.065em}
+.widget-about-heading,.widget-archive-heading,.widget-motion-heading,.widget-feature-heading{font-weight:600;letter-spacing:.045em}
+.widget-about>strong,.widget-motion>strong,.widget-feature-copy strong{font-weight:620;letter-spacing:-.035em}
+.widget-archive>strong{font-weight:500;letter-spacing:-.065em}
+.widget-about-footer,.widget-archive-footer,.widget-feature-copy>span{font-weight:400}
+
+/* The desktop Dock is about 30% smaller; touch sizes stay comfortable on phones. */
+.dock{height:56px;gap:5px;padding:6px 8px;bottom:10px;border-radius:19px}
+.dock::before{border-radius:17px}
+.dock-icon,.dock-icon:has(img){width:40px;height:40px}
+.dock-icon img[src$=".svg"],.dock-icon img[src="assets/instagram-appstore.png"]{border-radius:11px}
+.dock-separator{height:29px;margin:0 2px}
+.dock small{bottom:63px}
+@media(max-width:700px){.dock{height:51px;gap:3px;padding:5px 6px;bottom:calc(9px + env(safe-area-inset-bottom));border-radius:18px}.dock::before{border-radius:16px}.dock-icon,.dock-icon:has(img){width:clamp(30px,8vw,34px);height:clamp(30px,8vw,34px)}.dock-separator{height:25px;margin:0 1px}}
+@media(prefers-reduced-motion:reduce){.desktop-widget{transition:none}}

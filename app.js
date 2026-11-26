@@ -80,8 +80,12 @@ setInterval(tick, 30000);
 
 const workspace = document.querySelector('.workspace');
 const movableItems = [...workspace.querySelectorAll('.desktop-item, .desktop-widget')];
+const widgets = movableItems.filter(item => item.classList.contains('desktop-widget'));
 const desktopLayout = window.matchMedia('(min-width: 701px)');
 const layoutStorageKey = 'portfolio.desktop.positions.v3';
+const defaultWidgetCells = {
+  calendar: [0, 0], about: [1, 0], archive: [0, 1], motion: [1, 1], feature: [0, 2]
+};
 
 function itemId(item) {
   return item.classList.contains('desktop-widget') ? `widget:${item.dataset.dragId}` : `project:${item.dataset.open}`;
@@ -94,6 +98,12 @@ function readPositions() {
 
 function savePosition(item) {
   const positions = readPositions();
+  if (item.classList.contains('desktop-widget')) {
+    positions[itemId(item)] = {col: Number(item.dataset.gridCol), row: Number(item.dataset.gridRow)};
+    try { localStorage.setItem(layoutStorageKey, JSON.stringify(positions)); }
+    catch { /* The desktop still works when browser storage is unavailable. */ }
+    return;
+  }
   const maxX = Math.max(0, workspace.clientWidth - item.offsetWidth);
   const maxY = Math.max(0, workspace.clientHeight - item.offsetHeight);
   positions[itemId(item)] = {
@@ -104,9 +114,43 @@ function savePosition(item) {
   catch { /* The desktop still works when browser storage is unavailable. */ }
 }
 
+function widgetGrid() {
+  const cell = widgets[0].offsetWidth;
+  return {left: 16, top: 8, stepX: cell + (cell < 140 ? 11 : 15), stepY: widgets[0].offsetHeight + 15};
+}
+
+function placeWidget(item, wantedX, wantedY, occupied) {
+  const grid = widgetGrid();
+  const maxCol = Math.max(0, Math.floor((workspace.clientWidth - grid.left - item.offsetWidth) / grid.stepX));
+  const maxRow = Math.max(0, Math.floor((workspace.clientHeight - grid.top - item.offsetHeight) / grid.stepY));
+  const slots = [];
+  for (let row = 0; row <= maxRow; row++) {
+    for (let col = 0; col <= maxCol; col++) {
+      const x = grid.left + col * grid.stepX;
+      const y = grid.top + row * grid.stepY;
+      const overlaps = occupied.some(other => {
+        const ox = parseFloat(other.style.left);
+        const oy = parseFloat(other.style.top);
+        return x < ox + other.offsetWidth + 7 && x + item.offsetWidth + 7 > ox &&
+          y < oy + other.offsetHeight + 7 && y + item.offsetHeight + 7 > oy;
+      });
+      if (!overlaps) slots.push({col, row, x, y});
+    }
+  }
+  slots.sort((a, b) => (a.x - wantedX) ** 2 + (a.y - wantedY) ** 2 -
+    ((b.x - wantedX) ** 2 + (b.y - wantedY) ** 2));
+  const slot = slots[0];
+  if (!slot) return;
+  item.style.left = `${slot.x}px`;
+  item.style.top = `${slot.y}px`;
+  item.style.right = 'auto';
+  item.dataset.gridCol = slot.col;
+  item.dataset.gridRow = slot.row;
+}
+
 function applyPositions() {
   const positions = readPositions();
-  movableItems.forEach(item => {
+  movableItems.filter(item => !item.classList.contains('desktop-widget')).forEach(item => {
     const position = positions[itemId(item)];
     if (!desktopLayout.matches || !position) {
       item.style.left = '';
@@ -119,6 +163,28 @@ function applyPositions() {
     item.style.left = `${Math.round(Math.min(1, Math.max(0, position.x)) * maxX)}px`;
     item.style.top = `${Math.round(Math.min(1, Math.max(0, position.y)) * maxY)}px`;
     item.style.right = 'auto';
+  });
+  if (!desktopLayout.matches) {
+    widgets.forEach(item => {
+      item.style.left = '';
+      item.style.top = '';
+      item.style.right = '';
+    });
+    return;
+  }
+  const grid = widgetGrid();
+  const occupied = [];
+  widgets.forEach(item => {
+    const position = positions[itemId(item)];
+    const [defaultCol, defaultRow] = defaultWidgetCells[item.dataset.dragId];
+    const wantedX = Number.isInteger(position?.col) ? grid.left + position.col * grid.stepX :
+      typeof position?.x === 'number' ? position.x * Math.max(0, workspace.clientWidth - item.offsetWidth) :
+      grid.left + defaultCol * grid.stepX;
+    const wantedY = Number.isInteger(position?.row) ? grid.top + position.row * grid.stepY :
+      typeof position?.y === 'number' ? position.y * Math.max(0, workspace.clientHeight - item.offsetHeight) :
+      grid.top + defaultRow * grid.stepY;
+    placeWidget(item, wantedX, wantedY, occupied);
+    occupied.push(item);
   });
 }
 
@@ -156,12 +222,15 @@ movableItems.forEach(item => {
 
   function finishDrag(event) {
     if (!drag || event.pointerId !== drag.pointerId) return;
+    item.classList.remove('dragging');
     if (drag.moved) {
+      if (item.classList.contains('desktop-widget')) {
+        placeWidget(item, parseFloat(item.style.left), parseFloat(item.style.top), widgets.filter(other => other !== item));
+      }
       savePosition(item);
       suppressClick = true;
       setTimeout(() => { suppressClick = false; }, 500);
     }
-    item.classList.remove('dragging');
     drag = null;
   }
 
@@ -199,8 +268,8 @@ dock.addEventListener('pointermove', event => {
   dockApps.forEach(app => {
     const rect = app.getBoundingClientRect();
     const distance = Math.abs(event.clientX - (rect.left + rect.width / 2));
-    const wave = Math.exp(-0.5 * (distance / 70) ** 2);
-    app.style.setProperty('--dock-lift', `${(-17 * wave).toFixed(2)}px`);
+    const wave = Math.exp(-0.5 * (distance / 52) ** 2);
+    app.style.setProperty('--dock-lift', `${(-12 * wave).toFixed(2)}px`);
     app.style.setProperty('--dock-scale', (1 + 0.19 * wave).toFixed(3));
   });
 });
