@@ -33,3 +33,12 @@
 - Janela: sem faixa de título. O título e o botão de grade flutuam sobre o conteúdo (cápsula de vidro), a barra lateral é um painel de vidro inset com os botões vermelho, amarelo e verde dentro dela, e o item selecionado é uma pílula cinza. Raio de 28 px, sombra em camadas e aro de luz interno. No celular a barra volta a ser uma faixa fina.
 - Widgets: vidro claro com um tom leve por widget, aro de luz em gradiente (mais forte no topo e nas laterais), brilho no canto superior, sombra macia, cantos de 29 px (cerca de 20% do lado, como nas imagens do HIG) e `corner-shape: squircle` onde o navegador suporta. Ao arrastar o widget cresce 4% e a sombra aumenta; ao pressionar encolhe 3%.
 - Abertura: a janela cresce a partir do ícone, arquivo ou widget clicado (e volta para ele ao fechar), com os cantos acompanhando a escala e o conteúdo aparecendo depois. A mesa atrás escurece e desfoca levemente. Sem origem (por exemplo, clique na barra lateral) ou com movimento reduzido, a animação é simples.
+
+## Passe de layout (26/11/2026)
+
+- Janela de projeto pensada para trabalho visual: capa grande, três seções (Contexto, Processo, Resultado) e uma galeria de seis imagens, todas ainda marcadas como "em preparação". Ela mede 62% da largura da tela (entre 760 e 1180 px) e 82% da altura; as janelas de aplicativo seguem a tela entre 700 e 920 px. A janela pode ser arrastada pela barra de título; a posição vale até fechar.
+- Layout compacto (rolagem vertical) em larguras de até 700 px, em telas em retrato (tablet) e em telas com menos de 521 px de altura (celular na horizontal). O layout de mesa só vale na horizontal. Em retrato e no celular, os projetos vêm antes dos widgets, abaixo do queixo, e em telas de 560 px ou mais ficam em quatro colunas.
+- Telas grandes: a partir de 1800 px a interface escala (1,2x, 1,45x a partir de 2400 px e 1,8x a partir de 3200 px): fonte-base, widgets, arquivos, Dock e as margens usadas no encaixe.
+- O nome e a área de atuação ficam no topo da mesa (e são o único título de página); o botão "Contato" fica no canto superior direito e some quando uma janela está aberta.
+- Na primeira visita aparece uma dica, uma única vez (guardada no navegador), diferente para mouse e toque.
+- Os arquivos de projeto têm uma leve inclinação no desktop; widgets e Dock continuam alinhados. A densidade em volta do rosto, como no site de referência, depende das capas reais.

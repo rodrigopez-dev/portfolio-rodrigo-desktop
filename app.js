@@ -41,7 +41,10 @@ function openProject(key, trigger) {
   Object.entries(fields).forEach(([field, selector]) => { document.querySelector(selector).textContent = project[field]; });
   document.querySelector('#window-label').textContent = project.title;
   document.querySelector('#window-preview span').textContent = project.preview;
-  document.querySelector('#window-preview').hidden = key === 'arquivo';
+  const isProject = key in projectTitles;
+  document.querySelector('#window-preview').hidden = key === 'arquivo' || isProject;
+  document.querySelector('#case-study').hidden = !isProject;
+  win.dataset.kind = isProject ? 'project' : key === 'arquivo' ? 'directory' : 'app';
   document.querySelector('#window-directory').hidden = key !== 'arquivo';
   const currentSection = key === 'sobre' || key === 'contato' ? key : key === 'arquivo' || key in projectTitles ? 'arquivo' : null;
   document.querySelectorAll('.window-sidebar [data-open]').forEach(button => {
@@ -113,7 +116,7 @@ const workspace = document.querySelector('.workspace');
 const movableItems = [...workspace.querySelectorAll('.desktop-item, .desktop-widget')];
 const widgets = movableItems.filter(item => item.classList.contains('desktop-widget'));
 const projectFileItems = movableItems.filter(item => !item.classList.contains('desktop-widget'));
-const desktopLayout = window.matchMedia('(min-width: 701px)');
+const desktopLayout = window.matchMedia('(min-width: 701px) and (orientation: landscape) and (min-height: 521px)');
 const layoutStorageKey = 'portfolio.desktop.positions.v4';
 const legacyLayoutStorageKey = 'portfolio.desktop.positions.v3';
 const defaultWidgetCells = {
@@ -121,11 +124,12 @@ const defaultWidgetCells = {
 };
 // Desktop behavior modeled on the Mac: widgets can sit anywhere, line up with the edges and with each
 // other when dropped close to them, never overlap each other, and files move out of a widget's way.
-// Apple publishes no snapping distance; SNAP_DISTANCE is a design choice.
-const EDGE_MARGIN = 16;
-const SNAP_DISTANCE = 18;
-const MIN_GAP = 8;
-const FILE_GAP = 4;
+// Apple publishes no snapping distance; the snap distance is a design choice.
+const uiScale = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ui-scale')) || 1;
+const edgeMargin = () => 16 * uiScale();
+const snapDistance = () => 18 * uiScale();
+const minGap = () => 8 * uiScale();
+const fileGap = () => 4 * uiScale();
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
 function itemId(item) {
@@ -190,7 +194,8 @@ function savePosition(item) {
 }
 
 function widgetGap() {
-  return widgets[0].offsetWidth < 140 ? 11 : 15;
+  const scale = uiScale();
+  return (widgets[0].offsetWidth / scale < 140 ? 11 : 15) * scale;
 }
 
 // Aligns a dropped widget with the desktop edges and with other widgets, but only when it lands close to them.
@@ -199,15 +204,15 @@ function snappedPosition(item, x, y, others) {
   const w = item.offsetWidth;
   const h = item.offsetHeight;
   const gap = widgetGap();
-  const xTargets = [EDGE_MARGIN, workspace.clientWidth - EDGE_MARGIN - w];
-  const yTargets = [EDGE_MARGIN, workspace.clientHeight - EDGE_MARGIN - h];
+  const xTargets = [edgeMargin(), workspace.clientWidth - edgeMargin() - w];
+  const yTargets = [edgeMargin(), workspace.clientHeight - edgeMargin() - h];
   others.forEach(o => {
     xTargets.push(o.x, o.x + o.w - w, o.x + o.w + gap, o.x - gap - w);
     yTargets.push(o.y, o.y + o.h - h, o.y + o.h + gap, o.y - gap - h);
   });
   const near = (value, targets) => {
     const best = targets.reduce((a, t) => Math.abs(t - value) < Math.abs(a - value) ? t : a, targets[0]);
-    return Math.abs(best - value) <= SNAP_DISTANCE ? best : value;
+    return Math.abs(best - value) <= snapDistance() ? best : value;
   };
   return {x: clamp(near(x, xTargets), 0, maxX), y: clamp(near(y, yTargets), 0, maxY)};
 }
@@ -225,7 +230,7 @@ function freeWidgetSpot(item, x, y, others) {
   ));
   return candidates
     .map(c => ({x: clamp(c.x, 0, maxX), y: clamp(c.y, 0, maxY)}))
-    .filter(c => others.every(o => !overlaps({x: c.x, y: c.y, w, h}, o, MIN_GAP)))
+    .filter(c => others.every(o => !overlaps({x: c.x, y: c.y, w, h}, o, minGap())))
     .sort((a, b) => Math.hypot(a.x - x, a.y - y) - Math.hypot(b.x - x, b.y - y))[0] || null;
 }
 
@@ -251,7 +256,7 @@ function freeFileSpot(file) {
       const distance = Math.hypot(x - size.x, y - size.y);
       if (distance >= bestDistance) continue;
       const box = {x, y, w: size.w, h: size.h};
-      if (obstacles.every(o => !overlaps(box, o, FILE_GAP))) { best = {x, y}; bestDistance = distance; }
+      if (obstacles.every(o => !overlaps(box, o, fileGap()))) { best = {x, y}; bestDistance = distance; }
     }
   }
   return best;
@@ -260,7 +265,7 @@ function freeFileSpot(file) {
 function clearFilesFromWidgets(files = projectFileItems) {
   files.forEach(file => {
     const box = boxOf(file);
-    if (!widgets.some(widget => overlaps(box, boxOf(widget), FILE_GAP))) return;
+    if (!widgets.some(widget => overlaps(box, boxOf(widget), fileGap()))) return;
     const spot = freeFileSpot(file);
     if (spot) { setPosition(file, spot.x, spot.y); savePosition(file); }
   });
@@ -295,8 +300,8 @@ function applyPositions() {
     const saved = positions[itemId(item)];
     const [col, row] = defaultWidgetCells[item.dataset.dragId];
     const {maxX, maxY} = limitsOf(item);
-    const x = clamp(Number.isFinite(saved?.left) ? saved.left : EDGE_MARGIN + col * (cellWidth + gap), 0, maxX);
-    const y = clamp(Number.isFinite(saved?.top) ? saved.top : EDGE_MARGIN + row * (cellHeight + gap), 0, maxY);
+    const x = clamp(Number.isFinite(saved?.left) ? saved.left : edgeMargin() + col * (cellWidth + gap), 0, maxX);
+    const y = clamp(Number.isFinite(saved?.top) ? saved.top : edgeMargin() + row * (cellHeight + gap), 0, maxY);
     const spot = freeWidgetSpot(item, x, y, placed) || {x, y};
     setPosition(item, spot.x, spot.y);
     placed.push({x: spot.x, y: spot.y, w: item.offsetWidth, h: item.offsetHeight});
@@ -386,7 +391,7 @@ movableItems.forEach(item => {
     }
     const {maxX, maxY} = limitsOf(item);
     const moved = {x: clamp(x, 0, maxX), y: clamp(y, 0, maxY), w: box.w, h: box.h};
-    if (widgets.some(widget => overlaps(moved, boxOf(widget), FILE_GAP))) return;
+    if (widgets.some(widget => overlaps(moved, boxOf(widget), fileGap()))) return;
     setPosition(item, moved.x, moved.y);
     savePosition(item);
   });
@@ -503,6 +508,8 @@ const ZOOM_RESERVE = 84; // keeps the Dock visible when zooming
 let windowMode = 'normal';
 let minimizedThumb = null;
 let closing = false;
+let windowOffset = null;
+let windowDrag = null;
 
 function syncWindowControls() {
   win.classList.toggle('is-fullscreen', windowMode === 'fullscreen');
@@ -526,10 +533,19 @@ function pinWindowBox() {
 function releaseWindowBox() {
   ['left', 'top', 'width', 'height', 'maxHeight', 'transform', 'transformOrigin', 'transition', 'opacity', 'borderRadius']
     .forEach(property => { win.style[property] = ''; });
+  applyWindowOffset();
+}
+
+function applyWindowOffset() {
+  if (!windowOffset || windowMode !== 'normal') return;
+  win.style.left = `${windowOffset.left}px`;
+  win.style.top = `${windowOffset.top}px`;
+  win.style.transform = 'none';
 }
 
 function resetWindowState() {
   windowMode = 'normal';
+  windowOffset = null;
   releaseWindowBox();
   desktopEl.classList.remove('window-open');
   syncWindowControls();
@@ -569,18 +585,19 @@ function zoomWindow(source, direction, duration) {
   const dx = source.rect.left + source.rect.width / 2 - (to.left + to.width / 2);
   const dy = source.rect.top + source.rect.height / 2 - (to.top + to.height / 2);
   const radius = parseFloat(getComputedStyle(win).borderTopLeftRadius) || 28;
+  const centered = win.style.transform !== 'none';
   const small = {
-    transform: `translate(-50%, -50%) translate(${dx}px, ${dy}px) scale(${scale})`,
+    transform: `${centered ? 'translate(-50%, -50%) ' : ''}translate(${dx}px, ${dy}px) scale(${scale})`,
     opacity: 0.2,
     borderRadius: `${source.radius / scale}px`
   };
-  const full = {transform: 'translate(-50%, -50%)', opacity: 1, borderRadius: `${radius}px`};
+  const full = {transform: centered ? 'translate(-50%, -50%)' : 'none', opacity: 1, borderRadius: `${radius}px`};
   const opening = direction === 'open';
   win.querySelector('.window-shell').animate(
     opening ? [{opacity: 0}, {opacity: 0, offset: 0.25}, {opacity: 1}] : [{opacity: 1}, {opacity: 0}],
-    {duration, easing: 'ease-out', fill: 'both'}
+    {duration, easing: 'ease-out', fill: opening ? 'backwards' : 'forwards'}
   );
-  return win.animate(opening ? [small, full] : [full, small], {duration, easing: WINDOW_EASE, fill: 'both'});
+  return win.animate(opening ? [small, full] : [full, small], {duration, easing: WINDOW_EASE, fill: opening ? 'backwards' : 'forwards'});
 }
 
 function playOpenAnimation(source) {
@@ -615,8 +632,8 @@ function collapseWindow() {
   if (windowMode === 'normal' || win.hidden) return;
   const from = win.getBoundingClientRect();
   const fromRadius = getComputedStyle(win).borderRadius;
-  releaseWindowBox();
   windowMode = 'normal';
+  releaseWindowBox();
   syncWindowControls();
   const to = win.getBoundingClientRect();
   const toRadius = getComputedStyle(win).borderRadius;
@@ -716,3 +733,60 @@ window.addEventListener('resize', () => {
   syncWindowControls();
 });
 syncWindowControls();
+
+// Drag the window by its title bar (desktop, normal state). The new position lasts until the window closes.
+windowBar.addEventListener('pointerdown', event => {
+  if (event.button !== 0 || !desktopLayout.matches || windowMode !== 'normal' || event.target.closest('.traffic, .window-home')) return;
+  win.getAnimations({subtree: true}).forEach(animation => animation.cancel());
+  const rect = win.getBoundingClientRect();
+  windowDrag = {id: event.pointerId, x: event.clientX, y: event.clientY, left: rect.left, top: rect.top, moved: false};
+  windowBar.setPointerCapture(event.pointerId);
+});
+windowBar.addEventListener('pointermove', event => {
+  if (!windowDrag || event.pointerId !== windowDrag.id) return;
+  const dx = event.clientX - windowDrag.x;
+  const dy = event.clientY - windowDrag.y;
+  if (!windowDrag.moved && Math.hypot(dx, dy) < 4) return;
+  windowDrag.moved = true;
+  const desk = desktopEl.getBoundingClientRect();
+  const width = win.offsetWidth;
+  windowOffset = {
+    left: Math.round(clamp(windowDrag.left + dx, 140 - width, desk.width - 140)),
+    top: Math.round(clamp(windowDrag.top + dy, 0, desk.height - 56))
+  };
+  applyWindowOffset();
+});
+['pointerup', 'pointercancel'].forEach(type => windowBar.addEventListener(type, event => {
+  if (windowDrag && event.pointerId === windowDrag.id) windowDrag = null;
+}));
+// The title bar floats over the content, so the mouse wheel over it still scrolls the content.
+windowBar.addEventListener('wheel', event => {
+  win.querySelector('.window-content').scrollBy({top: event.deltaY});
+}, {passive: true});
+
+// First visit hint, shown once.
+const hintBox = document.querySelector('#hint');
+const hintKey = 'portfolio.hint.seen';
+const hasHover = window.matchMedia('(hover: hover) and (pointer: fine)');
+let hintTimer = null;
+
+function hideHint() {
+  if (hintBox.hidden) return;
+  clearTimeout(hintTimer);
+  hintBox.classList.add('is-leaving');
+  setTimeout(() => { hintBox.hidden = true; hintBox.classList.remove('is-leaving'); }, 450);
+}
+
+function maybeShowHint() {
+  try { if (localStorage.getItem(hintKey) === '1') return; } catch { /* Show the hint when storage is unavailable. */ }
+  document.querySelector('#hint-text').textContent = desktopLayout.matches && hasHover.matches
+    ? 'Dê dois cliques em um arquivo para abrir. Arraste widgets e arquivos; clique com o botão direito para restaurar.'
+    : 'Toque em um arquivo para abrir um projeto.';
+  hintBox.hidden = false;
+  try { localStorage.setItem(hintKey, '1'); } catch { /* Ignore disabled storage. */ }
+  hintTimer = setTimeout(hideHint, 12000);
+}
+
+document.querySelector('#hint-close').addEventListener('click', hideHint);
+document.addEventListener('pointerdown', event => { if (!event.target.closest('#hint')) hideHint(); }, true);
+setTimeout(maybeShowHint, 1500);
