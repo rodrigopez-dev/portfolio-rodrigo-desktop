@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Portfólio criativo apresentado como um desktop interativo." />
+  <title>Meu Portfólio — Desktop Criativo</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="desktop" aria-label="Portfólio em formato de desktop">
+    <div class="wallpaper" aria-hidden="true"></div>
+
+    <header class="menubar">
+      <button class="apple" aria-label="Abrir apresentação">●</button>
+      <strong>Portfólio</strong>
+      <nav aria-label="Menu principal">
+        <button data-open="sobre">Sobre</button>
+        <button data-open="contato">Contato</button>
+      </nav>
+      <div class="status"><span id="date"></span><span id="clock"></span></div>
+    </header>
+
+    <section class="workspace" aria-label="Projetos">
+      <button class="desktop-item p1" data-open="identidade">
+        <span class="project-file" aria-hidden="true"><span class="file-kind">PROJETO</span><span class="file-preview">ID</span><span class="file-lines"></span></span><span>Identidade visual</span>
+      </button>
+      <button class="desktop-item p2" data-open="campanha">
+        <span class="project-file" aria-hidden="true"><span class="file-kind">PROJETO</span><span class="file-preview">CD</span><span class="file-lines"></span></span><span>Campanha digital</span>
+      </button>
+      <button class="desktop-item p3" data-open="editorial">
+        <span class="project-file" aria-hidden="true"><span class="file-kind">PROJETO</span><span class="file-preview">ED</span><span class="file-lines"></span></span><span>Projeto editorial</span>
+      </button>
+      <button class="desktop-item p4" data-open="motion">
+        <span class="project-file" aria-hidden="true"><span class="file-kind">PROJETO</span><span class="file-preview">MV</span><span class="file-lines"></span></span><span>Motion & vídeo</span>
+      </button>
+      <button class="desktop-item p5" data-open="social">
+        <span class="project-file" aria-hidden="true"><span class="file-kind">PROJETO</span><span class="file-preview">SM</span><span class="file-lines"></span></span><span>Social media</span>
+      </button>
+      <button class="desktop-item p6" data-open="web">
+        <span class="project-file" aria-hidden="true"><span class="file-kind">PROJETO</span><span class="file-preview">WEB</span><span class="file-lines"></span></span><span>Experiência web</span>
+      </button>
+      <button class="desktop-item p7" data-open="foto">
+        <span class="project-file" aria-hidden="true"><span class="file-kind">PROJETO</span><span class="file-preview">DA</span><span class="file-lines"></span></span><span>Direção de arte</span>
+      </button>
+      <button class="desktop-item p8" data-open="experimentos">
+        <span class="project-file" aria-hidden="true"><span class="file-kind">PROJETO</span><span class="file-preview">LAB</span><span class="file-lines"></span></span><span>Experimentos</span>
+      </button>
+    </section>
+
+    <section class="window" id="project-window" role="dialog" aria-modal="false" aria-labelledby="window-title" hidden>
+      <div class="window-bar">
+        <div class="traffic"><button class="close" aria-label="Fechar"></button><i></i><i></i></div>
+        <span id="window-label">Projeto</span>
+      </div>
+      <div class="window-content">
+        <p class="eyebrow" id="window-type">Projeto selecionado</p>
+        <h1 id="window-title">Título do projeto</h1>
+        <p id="window-description">Descrição do projeto.</p>
+        <div class="project-meta"><span id="window-year">2026</span><span id="window-skills">Direção criativa</span></div>
+        <div class="project-preview" id="window-preview" aria-hidden="true"><span>Capa em preparação</span></div>
+      </div>
+    </section>
+
+    <nav class="dock" aria-label="Atalhos">
+      <button data-open="notas" aria-label="Bloco de Notas"><span class="dock-icon"><img src="assets/notes.png" alt="" /></span><small>Notas</small></button>
+      <button data-open="apresentacoes" aria-label="PowerPoint"><span class="dock-icon"><img src="assets/powerpoint.png" alt="" /></span><small>PowerPoint</small></button>
+      <button data-open="experimentos" aria-label="Atalhos"><span class="dock-icon"><img src="assets/shortcuts.png" alt="" /></span><small>Atalhos</small></button>
+      <span class="dock-separator"></span>
+      <a href="#" id="instagram" aria-label="Instagram"><span class="dock-icon"><img src="assets/instagram.png" alt="" /></span><small>Instagram</small></a>
+      <button data-open="contato" aria-label="Contato"><span class="dock-icon"><img src="assets/mail.png" alt="" /></span><small>E-mail</small></button>
+      <button data-open="lixeira" aria-label="Lixeira"><span class="dock-icon trash"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M14 15h20l-2 25H16l-2-25ZM11 13h26M19 10h10M21 20v15m6-15v15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><small>Lixeira</small></button>
+    </nav>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
