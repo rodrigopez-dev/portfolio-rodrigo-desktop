@@ -58,7 +58,7 @@ function closeWindow() {
   if (lastTrigger && typeof lastTrigger.focus === 'function') lastTrigger.focus();
 }
 
-document.querySelectorAll('[data-open]').forEach(button => button.addEventListener('click', () => openProject(button.dataset.open, button)));
+document.querySelectorAll('[data-open]:not(.desktop-item)').forEach(button => button.addEventListener('click', () => openProject(button.dataset.open, button)));
 document.querySelector('.close').addEventListener('click', closeWindow);
 document.addEventListener('keydown', event => { if (event.key === 'Escape' && !win.hidden) closeWindow(); });
 document.querySelector('#instagram').addEventListener('click', event => { event.preventDefault(); openProject('contato', event.currentTarget); });
@@ -250,6 +250,32 @@ document.querySelector('#reset-layout').addEventListener('click', () => {
 });
 window.addEventListener('resize', applyPositions);
 applyPositions();
+
+// Desktop files behave like Finder: click selects, double click opens.
+// Touch, narrow screens and keyboard activation (Enter) still open with one action.
+const projectFiles = [...workspace.querySelectorAll('.desktop-item')];
+let lastPointerType = 'mouse';
+
+function selectProjectFile(selected) {
+  projectFiles.forEach(file => file.classList.toggle('is-selected', file === selected));
+}
+
+projectFiles.forEach(item => {
+  item.addEventListener('pointerdown', event => {
+    lastPointerType = event.pointerType;
+    if (desktopLayout.matches && event.button === 0 && event.pointerType !== 'touch') selectProjectFile(item);
+  });
+  item.addEventListener('click', event => {
+    if (!desktopLayout.matches || event.detail === 0 || lastPointerType === 'touch') openProject(item.dataset.open, item);
+  });
+  item.addEventListener('dblclick', () => {
+    if (desktopLayout.matches && lastPointerType !== 'touch') openProject(item.dataset.open, item);
+  });
+});
+
+document.addEventListener('pointerdown', event => {
+  if (!event.target.closest('.desktop-item')) selectProjectFile(null);
+});
 
 const dock = document.querySelector('.dock');
 const dockApps = [...dock.querySelectorAll('button, a')];

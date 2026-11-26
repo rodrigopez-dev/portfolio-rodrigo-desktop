@@ -289,3 +289,7 @@
 .dock small{bottom:63px}
 @media(max-width:700px){.dock{height:51px;gap:3px;padding:5px 6px;bottom:calc(9px + env(safe-area-inset-bottom));border-radius:18px}.dock::before{border-radius:16px}.dock-icon,.dock-icon:has(img){width:clamp(30px,8vw,34px);height:clamp(30px,8vw,34px)}.dock-separator{height:25px;margin:0 1px}}
 @media(prefers-reduced-motion:reduce){.desktop-widget{transition:none}}
+
+/* Desktop files: click selects, double click opens. Hover only lifts the icon. */
+.desktop-item:hover:not(.is-selected):not(.is-open){background:transparent;border-color:transparent;outline:none}
+.desktop-item.is-selected{background:rgba(72,137,239,.28);border-color:rgba(194,220,255,.65);outline:none}
