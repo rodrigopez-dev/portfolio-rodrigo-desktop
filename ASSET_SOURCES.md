@@ -1,6 +1,7 @@
 # Dock icon sources
 
 - After Effects, Photoshop, Illustrator: [Devicon](https://github.com/devicons/devicon), [MIT license](https://github.com/devicons/devicon/blob/master/LICENSE).
-- Photos: [Apple Photos User Guide for Mac](https://support.apple.com/en-ph/guide/photos/welcome/mac).
+- Mail, Notes, Photos: [macOS 26 icon exports](https://github.com/zagnut531/macOS-26-Icons), exported from a Mac by the repository author. These images depict Apple app icons and remain Apple artwork; the repository is a source of the export, not an official Apple distribution.
+- PowerPoint and Instagram: current app icon artwork from their [Apple App Store listing](https://apps.apple.com/br/app/instagram/id389801252) and [PowerPoint listing](https://apps.apple.com/br/app/microsoft-powerpoint/id462062816) through Apple's public artwork feed.
 
 Product names and logos belong to their respective owners.

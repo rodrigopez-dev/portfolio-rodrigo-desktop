@@ -33,18 +33,28 @@ let lastTrigger = null;
 function openProject(key, trigger) {
   const project = projects[key];
   if (!project) return;
-  lastTrigger = trigger || document.activeElement;
+  if (win.hidden || !win.contains(trigger)) lastTrigger = trigger || document.activeElement;
+  win.dataset.view = key;
   Object.entries(fields).forEach(([field, selector]) => { document.querySelector(selector).textContent = project[field]; });
   document.querySelector('#window-label').textContent = project.title;
   document.querySelector('#window-preview span').textContent = project.preview;
   document.querySelector('#window-preview').hidden = key === 'arquivo';
   document.querySelector('#window-directory').hidden = key !== 'arquivo';
+  const currentSection = key === 'sobre' || key === 'contato' ? key : key === 'arquivo' || key in projectTitles ? 'arquivo' : null;
+  document.querySelectorAll('.window-sidebar [data-open]').forEach(button => {
+    const selected = button.dataset.open === currentSection;
+    button.classList.toggle('is-current', selected);
+    if (selected) button.setAttribute('aria-current', 'page');
+    else button.removeAttribute('aria-current');
+  });
+  document.querySelectorAll('.desktop-item').forEach(item => item.classList.toggle('is-open', item.dataset.open === key));
   win.hidden = false;
   document.querySelector('.close').focus();
 }
 
 function closeWindow() {
   win.hidden = true;
+  document.querySelectorAll('.desktop-item.is-open').forEach(item => item.classList.remove('is-open'));
   if (lastTrigger && typeof lastTrigger.focus === 'function') lastTrigger.focus();
 }
 
