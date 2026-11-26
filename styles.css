@@ -51,7 +51,7 @@
 @media(max-width:700px){.dock{position:fixed;z-index:30}.menubar{position:sticky;top:0}.workspace{padding-bottom:calc(140px + env(safe-area-inset-bottom))}}
 
 /* User-supplied portrait wallpaper. Keep the subject centered as the viewport changes. */
-.wallpaper{position:fixed;inset:0;background:#090608 url("assets/wallpaper.jpeg") center 39% / cover no-repeat}
+.wallpaper{position:fixed;inset:0;background:#090608 url("assets/wallpaper-v2.jpg") center top / cover no-repeat}
 .wallpaper::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.18),transparent 24%,transparent 72%,rgba(0,0,0,.22));pointer-events:none}
 .menubar{color:#fff;background:rgba(13,12,16,.3);border-bottom-color:rgba(255,255,255,.16);text-shadow:0 1px 2px rgba(0,0,0,.55)}
 .desktop-item{color:#fff;text-shadow:0 1px 4px #000,0 1px 2px #000}
@@ -60,7 +60,7 @@
 @media(prefers-reduced-transparency:reduce){.menubar{color:#fff;background:#151418}.dock{background:#323237}}
 @media(max-width:700px){.workspace{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:clamp(22px,10vw,64px);padding-left:18px;padding-right:18px}.desktop-item{justify-self:center}}
 
-/* Fit the entire portrait on wide screens and keep files away from the face. */
-.wallpaper{background-position:center center;background-size:contain}
+/* The new wide portrait can fill the desktop without cropping the head. */
+.wallpaper{background-position:center 24px;background-size:cover}
 @media(min-width:701px){.p3{left:auto;right:28%;top:4%}.p4{right:17%;top:23%}.p5{right:7%;top:8%}.p7{left:auto;right:28%;top:61%}.p8{right:13%;top:56%}}
 @media(max-width:700px){.wallpaper{background-position:center center;background-size:cover}}
