@@ -59,3 +59,8 @@
 @media(max-width:700px){.wallpaper{background-position:center 35%}}
 @media(prefers-reduced-transparency:reduce){.menubar{color:#fff;background:#151418}.dock{background:#323237}}
 @media(max-width:700px){.workspace{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:clamp(22px,10vw,64px);padding-left:18px;padding-right:18px}.desktop-item{justify-self:center}}
+
+/* Fit the entire portrait on wide screens and keep files away from the face. */
+.wallpaper{background-position:center center;background-size:contain}
+@media(min-width:701px){.p3{left:auto;right:28%;top:4%}.p4{right:17%;top:23%}.p5{right:7%;top:8%}.p7{left:auto;right:28%;top:61%}.p8{right:13%;top:56%}}
+@media(max-width:700px){.wallpaper{background-position:center center;background-size:cover}}
