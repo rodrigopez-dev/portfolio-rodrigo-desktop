@@ -4,16 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Portfólio criativo apresentado como um desktop interativo." />
-  <title>Meu Portfólio — Desktop Criativo</title>
-  <link rel="stylesheet" href="styles.css?v=9" />
+  <title>Rodrigo Pezotti — Portfólio</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="styles.css?v=11" />
 </head>
 <body>
   <main class="desktop" aria-label="Portfólio em formato de desktop">
     <div class="wallpaper" aria-hidden="true"></div>
 
     <header class="menubar">
-      <button class="apple" aria-label="Abrir apresentação">●</button>
-      <strong>Portfólio</strong>
+      <button class="apple" data-open="sobre" aria-label="Abrir apresentação">R</button>
+      <strong>Rodrigo Pezotti</strong>
       <nav aria-label="Menu principal">
         <button data-open="sobre">Sobre</button>
         <button data-open="contato">Contato</button>
@@ -56,6 +57,16 @@
         <strong>Rodrigo<br />Pezotti</strong>
         <span class="widget-about-footer">Criação visual</span>
       </button>
+      <button type="button" class="desktop-widget widget-archive" data-drag-id="archive" data-open="arquivo" aria-label="Abrir arquivo com oito projetos">
+        <span class="widget-archive-heading">ARQUIVO</span>
+        <strong>08</strong>
+        <span class="widget-archive-footer">projetos para explorar</span>
+      </button>
+      <button type="button" class="desktop-widget widget-motion" data-drag-id="motion" data-open="motion" aria-label="Abrir projeto Motion e vídeo">
+        <span class="widget-motion-heading">EM FOCO</span>
+        <span class="widget-motion-symbol" aria-hidden="true">▶</span>
+        <strong>Motion &amp;<br />vídeo</strong>
+      </button>
       <button type="button" class="desktop-widget widget-feature" data-drag-id="feature" data-open="identidade" aria-label="Abrir projeto Identidade visual">
         <span class="widget-feature-heading">ARQUIVO EM FOCO</span>
         <span class="widget-feature-body"><span class="widget-feature-art" aria-hidden="true"><span>ID</span></span><span class="widget-feature-copy"><strong>Identidade<br />visual</strong><span>Explorar projeto</span></span></span>
@@ -73,6 +84,16 @@
         <p id="window-description">Descrição do projeto.</p>
         <div class="project-meta"><span id="window-year">2026</span><span id="window-skills">Direção criativa</span></div>
         <div class="project-preview" id="window-preview" aria-hidden="true"><span>Capa em preparação</span></div>
+        <div class="window-directory" id="window-directory" hidden>
+          <button type="button" data-open="identidade">Identidade visual</button>
+          <button type="button" data-open="campanha">Campanha digital</button>
+          <button type="button" data-open="editorial">Projeto editorial</button>
+          <button type="button" data-open="motion">Motion &amp; vídeo</button>
+          <button type="button" data-open="social">Social media</button>
+          <button type="button" data-open="web">Experiência web</button>
+          <button type="button" data-open="foto">Direção de arte</button>
+          <button type="button" data-open="experimentos">Experimentos</button>
+        </div>
       </div>
     </section>
 
@@ -91,6 +112,6 @@
       <button data-open="lixeira" aria-label="Lixeira"><span class="dock-icon trash"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M14 15h20l-2 25H16l-2-25ZM11 13h26M19 10h10M21 20v15m6-15v15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><small>Lixeira</small></button>
     </nav>
   </main>
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>

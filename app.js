@@ -17,6 +17,7 @@ const projects = Object.fromEntries(Object.entries(projectTitles).map(([key, [ti
 
 Object.assign(projects, {
   calendario: {type:'Calendário',title:'Hoje',description:'',year:'',skills:'',preview:'Seu calendário'},
+  arquivo: {type:'Projetos',title:'Arquivo',description:'Escolha um dos oito projetos para abrir.',year:'8 projetos',skills:'Portfólio',preview:''},
   sobre: {type:'Perfil',title:'Sobre mim',description:'Espaço para sua apresentação, trajetória e forma de trabalhar.',year:'Perfil',skills:'Texto em preparação',preview:'Sua apresentação'},
   contato: {type:'Contato',title:'Vamos conversar',description:'Aqui entram seu e-mail, Instagram e outros links de contato.',year:'Contato',skills:'Links em preparação',preview:'Seus contatos'},
   notas: {type:'Aplicativo',title:'Bloco de Notas',description:'Um lugar para ideias, bastidores e anotações sobre o seu trabalho.',year:'Notas',skills:'Conteúdo em preparação',preview:'Suas notas'},
@@ -36,6 +37,8 @@ function openProject(key, trigger) {
   Object.entries(fields).forEach(([field, selector]) => { document.querySelector(selector).textContent = project[field]; });
   document.querySelector('#window-label').textContent = project.title;
   document.querySelector('#window-preview span').textContent = project.preview;
+  document.querySelector('#window-preview').hidden = key === 'arquivo';
+  document.querySelector('#window-directory').hidden = key !== 'arquivo';
   win.hidden = false;
   document.querySelector('.close').focus();
 }
@@ -68,7 +71,7 @@ setInterval(tick, 30000);
 const workspace = document.querySelector('.workspace');
 const movableItems = [...workspace.querySelectorAll('.desktop-item, .desktop-widget')];
 const desktopLayout = window.matchMedia('(min-width: 701px)');
-const layoutStorageKey = 'portfolio.desktop.positions.v2';
+const layoutStorageKey = 'portfolio.desktop.positions.v3';
 
 function itemId(item) {
   return item.classList.contains('desktop-widget') ? `widget:${item.dataset.dragId}` : `project:${item.dataset.open}`;

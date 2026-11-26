@@ -121,3 +121,34 @@
 }
 @media(max-width:380px){.desktop-widget{padding:11px}.widget-date-heading{font-size:1.02rem}.widget-about>strong{font-size:1.15rem}}
 @media(prefers-reduced-transparency:reduce){.widget-calendar{background:#19191d}.widget-about{background:#43434b}.widget-feature{background:#30333b}.desktop-widget{backdrop-filter:none;-webkit-backdrop-filter:none}}
+
+/* Five useful widgets form a compact grid without covering the portrait. */
+.menubar .apple{display:grid;place-items:center;width:18px;height:18px;padding:0;border:1px solid rgba(255,255,255,.75);border-radius:5px;font-size:.68rem;font-weight:800;line-height:1}
+.menubar>strong{font-size:.82rem;letter-spacing:-.02em}
+.widget-archive{left:16px;top:168px;justify-content:space-between;background:linear-gradient(145deg,rgba(52,65,77,.9),rgba(25,33,42,.89))}
+.widget-archive-heading,.widget-motion-heading{font-size:.69rem;font-weight:750;letter-spacing:.1em;color:#d7e1e8}
+.widget-archive>strong{font-size:4.5rem;font-weight:600;letter-spacing:-.085em;line-height:.82;font-variant-numeric:tabular-nums}
+.widget-archive-footer{font-size:.78rem;color:#dbe4ea}
+.widget-motion{left:176px;top:168px;justify-content:space-between;background:radial-gradient(circle at 79% 28%,rgba(180,141,255,.48),transparent 38%),linear-gradient(145deg,rgba(61,47,93,.92),rgba(22,24,44,.92))}
+.widget-motion-heading{color:#e3d6fb}
+.widget-motion-symbol{display:grid;place-items:center;align-self:flex-end;width:34px;height:34px;border:1px solid rgba(255,255,255,.49);border-radius:50%;color:#fff;font-size:.85rem;padding-left:2px}
+.widget-motion>strong{font-size:1.2rem;line-height:1.03;letter-spacing:-.04em}
+.widget-feature{top:328px}
+.window-directory{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+.window-directory button{min-height:46px;padding:10px 12px;border:1px solid #d9dfe5;border-radius:11px;background:#fff;color:#263440;text-align:left;font-family:inherit;font-size:.85rem;font-weight:600;line-height:1.2;cursor:pointer}
+.window-directory button:hover,.window-directory button:focus-visible{background:#edf4fb;border-color:#79a8d0;outline:none}
+.window-directory[hidden],#window-preview[hidden]{display:none}
+@media(min-width:701px) and (max-width:1100px){
+  .widget-archive{top:149px}
+  .widget-motion{left:153px;top:149px}
+  .widget-feature{top:290px}
+  .widget-archive>strong{font-size:3.8rem}
+  .widget-motion>strong{font-size:1.05rem}
+}
+@media(max-width:700px){
+  .widget-archive,.widget-motion,.widget-feature{left:auto;top:auto}
+  .widget-archive>strong{font-size:4rem}
+  .workspace{padding-top:min(52svh,480px)}
+  .window-directory{grid-template-columns:1fr}
+}
+@media(prefers-reduced-transparency:reduce){.widget-archive{background:#303e49}.widget-motion{background:#382d53}}
